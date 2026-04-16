@@ -161,7 +161,7 @@ starting point, feedback is welcome.
 - `doctor`, `audit`, `report`
 - route / network / controller planning output
 - explainable findings
-- JSON / markdown artifact
+- JSON / markdown artifacts
 
 레거시 GetX 코드베이스를 다루고 있다면 피드백 부탁드립니다.
 
