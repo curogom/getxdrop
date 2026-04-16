@@ -24,6 +24,7 @@ Today, GetXDrop focuses on `doctor`, `audit`, and `report`. It analyzes GetX usa
 - Repository: [github.com/curogom/getxdrop](https://github.com/curogom/getxdrop)
 - Issues: [github.com/curogom/getxdrop/issues](https://github.com/curogom/getxdrop/issues)
 - Discussions: [github.com/curogom/getxdrop/discussions](https://github.com/curogom/getxdrop/discussions)
+- Announcement: [GetXDrop v0.1.0 is live](https://github.com/curogom/getxdrop/discussions/8)
 - Site: [curogom.github.io/getxdrop](https://curogom.github.io/getxdrop/)
 
 ![GetXDrop preview](https://curogom.github.io/getxdrop/assets/og-preview.svg)
@@ -178,6 +179,7 @@ Public project docs:
 - [docs/README.md](docs/README.md)
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/master_plan.md](docs/master_plan.md)
+- [docs/launch_kit.md](docs/launch_kit.md)
 - [docs/public_release_checklist.md](docs/public_release_checklist.md)
 - [docs/maintainer_operations.md](docs/maintainer_operations.md)
 - [docs/release_and_support_policy.md](docs/release_and_support_policy.md)
