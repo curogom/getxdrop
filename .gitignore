@@ -1,0 +1,12 @@
+# FVM Version Cache
+.fvm/
+
+# Dart and Flutter build outputs
+**/.dart_tool/
+**/build/
+.dart_tool/
+build/
+
+# IDE files
+**/.idea/
+*.iml

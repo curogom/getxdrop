@@ -1,0 +1,21 @@
+name: getxdrop_cli
+description: CLI entrypoint for GetXDrop.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.11.4
+
+executables:
+  getxdrop: getxdrop
+
+dependencies:
+  args: ^2.7.0
+  getxdrop_analyzer_core: ^0.1.0
+  getxdrop_report_core: ^0.1.0
+  path: ^1.9.1
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.3

@@ -1,0 +1,16 @@
+name: getxdrop_report_core
+description: Report renderers for GetXDrop inventories.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  getxdrop_analyzer_core: ^0.1.0
+  path: ^1.9.1
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.3

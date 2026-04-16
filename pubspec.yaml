@@ -1,0 +1,34 @@
+name: getxdrop_workspace
+publish_to: none
+environment:
+  sdk: ^3.11.4
+
+workspace:
+  - packages/analyzer_core
+  - packages/cli
+  - packages/codemod_core
+  - packages/report_core
+  - packages/templates
+
+dev_dependencies:
+  melos: ^7.1.1
+
+melos:
+  scripts:
+    bootstrap:
+      run: fvm dart pub get && fvm dart run melos bootstrap
+      description: Install workspace dependencies.
+    analyze:
+      run: |
+        fvm dart run melos exec --fail-fast -- "dart analyze ."
+        cd examples/sample_getx_app && fvm flutter analyze
+      description: Analyze workspace packages and the Flutter fixture app.
+    test:
+      run: |
+        fvm dart run melos exec --fail-fast -- "dart test"
+        cd examples/sample_getx_app && fvm flutter test
+      description: Run package tests and fixture app smoke tests.
+    audit:sample:
+      run: |
+        cd packages/cli && fvm dart run bin/getxdrop.dart audit --project ../../examples/sample_getx_app --out ../../build/getxdrop --format both
+      description: Audit the sample GetX app and generate reports.
