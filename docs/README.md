@@ -9,6 +9,7 @@ reading the internal planning set first.
 
 - [roadmap.md](roadmap.md)
 - [master_plan.md](master_plan.md)
+- [launch_kit.md](launch_kit.md)
 - [public_release_checklist.md](public_release_checklist.md)
 - [maintainer_operations.md](maintainer_operations.md)
 - [release_and_support_policy.md](release_and_support_policy.md)
