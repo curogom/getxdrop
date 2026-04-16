@@ -5,7 +5,7 @@
 ### Category A: State
 감지 대상:
 - `.obs`
-- `Rx<T>`
+- `Rx*`
 - `Obx`
 - `GetBuilder`
 - `GetxController`

@@ -1,0 +1,11 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="32" fill="#FFF8ED"/>
+  <circle cx="64" cy="64" r="42" fill="url(#paint0_linear_1_2)"/>
+  <text x="64" y="73" text-anchor="middle" fill="white" font-size="28" font-family="system-ui, -apple-system, sans-serif" font-weight="700">GXD</text>
+  <defs>
+    <linearGradient id="paint0_linear_1_2" x1="22" y1="22" x2="106" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B8A74"/>
+      <stop offset="1" stop-color="#EC6F26"/>
+    </linearGradient>
+  </defs>
+</svg>

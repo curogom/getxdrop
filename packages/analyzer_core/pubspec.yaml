@@ -2,6 +2,9 @@ name: getxdrop_analyzer_core
 description: Core audit engine and normalized inventory models for GetXDrop.
 version: 0.1.0
 publish_to: none
+homepage: https://github.com/curogom/getxdrop
+repository: https://github.com/curogom/getxdrop
+issue_tracker: https://github.com/curogom/getxdrop/issues
 resolution: workspace
 
 environment:

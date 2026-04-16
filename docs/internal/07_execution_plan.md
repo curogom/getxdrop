@@ -17,20 +17,26 @@
 목표:
 - GetX 핵심 패턴 분석
 - markdown/json report 생성
+- sample app 회귀 검증 고정
+- CI 검증 연결
 
 포함:
 - `.obs`
+- `Rx*`
 - `Obx`
 - `GetxController`
 - `Get.put`
 - `Get.find`
 - `GetMaterialApp`
 - `Get.to*`
+- route middleware
 - `GetConnect`
 
 완료 기준:
 - sample project에서 meaningful report 생성
 - parse failure handling 존재
+- `inventory.json` / `migration_report.json` 계약 고정
+- `melos run analyze` / `melos run test` 기준 green
 
 ### Phase 2: Scaffold MVP
 목표:
@@ -66,8 +72,10 @@
 3. audit command 구현
 4. report core 구현
 5. example app 작성
-6. scaffold command 구현
-7. safe apply 일부 구현
+6. sample app 회귀 테스트 고정
+7. CI 연결
+8. scaffold command 구현
+9. safe apply 일부 구현
 
 ## 3) 샘플 앱 요구사항
 
@@ -76,9 +84,11 @@
 
 - `GetMaterialApp`
 - route declaration
+- route middleware
 - simple `Get.toNamed`
 - `GetxController`
 - `.obs`
+- `Rx*`
 - `Obx`
 - `Get.put` / `Get.find`
 - `GetConnect` 또는 최소 network wrapper 예시
@@ -89,7 +99,7 @@
 
 ### 리스크 A: 범위 폭주
 대응:
-- v0.1은 audit/report만 해도 출시 가능하다고 정의
+- v0.1은 `doctor + audit + report + sample app regression + CI`까지로 고정
 
 ### 리스크 B: false positive
 대응:
@@ -146,3 +156,4 @@
 - error handling 존재
 - dry-run 또는 preview 가능
 - README 또는 docs 반영 완료
+- TDD / `Red -> Green -> Refactor` 순서로 구현됨

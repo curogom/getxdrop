@@ -49,15 +49,16 @@ Its job is to:
 
 ## Immediate objective
 Build **v0.1** focused on:
+- `doctor`
 - `audit`
 - `report`
-- basic repo scaffolding
+- sample app regression coverage
+- CI verification
 
 ## Required commands
+- `getxdrop doctor`
 - `getxdrop audit`
 - `getxdrop report`
-- `getxdrop scaffold`
-- `getxdrop doctor`
 
 ## Recommended monorepo layout
 ```text
@@ -80,12 +81,13 @@ getxdrop/
 3. implement audit for core GetX patterns
 4. implement markdown and json reports
 5. create a realistic sample GetX app
-6. add scaffold generation for GoRouter, Dio, and Riverpod shells
+6. lock regression coverage against the sample app
+7. add CI verification
 
 ## Core findings to detect
 ### State
 - `.obs`
-- `Rx<T>`
+- `Rx*`
 - `Obx`
 - `GetBuilder`
 - `GetxController`
@@ -103,6 +105,7 @@ getxdrop/
 - `Get.to*`
 - `Get.off*`
 - `Get.arguments`
+- route middleware
 
 ### UI Helpers
 - `Get.snackbar`
@@ -119,6 +122,7 @@ getxdrop/
 
 ## Output requirements
 Produce:
+- `inventory.json`
 - `migration_report.md`
 - `migration_report.json`
 
@@ -160,7 +164,8 @@ The first success metric is “whether a legacy GetX project becomes decomposabl
 6. audit implementation for initial patterns
 7. report generation
 8. sample app
-9. docs needed to run the tool locally
+9. CI verification
+10. docs needed to run the tool locally
 
 When implementing, prefer explicit models, small packages, testable APIs, and a conservative migration stance.
 
@@ -168,7 +173,8 @@ When implementing, prefer explicit models, small packages, testable APIs, and a 
 
 ## Codex 작업 지시 요약
 
-- 첫 커밋에서 욕심내지 말고 `audit + report`까지만 확실하게 만든다.
+- 첫 커밋에서 욕심내지 말고 `doctor + audit + report`까지만 확실하게 만든다.
 - codemod는 틀만 잡고 보수적으로 둔다.
 - example app을 반드시 포함한다.
+- sample app 회귀 테스트와 CI를 같이 고정한다.
 - README에서 이 프로젝트가 자동변환기가 아니라는 점을 강하게 명시한다.

@@ -45,6 +45,91 @@ class ReportRenderer {
 
     buffer
       ..writeln()
+      ..writeln('## Route Inventory')
+      ..writeln(
+        '- declarations: ${inventory.routeInventory.declarations.length}',
+      )
+      ..writeln('- invocations: ${inventory.routeInventory.invocations.length}')
+      ..writeln(
+        '- argument accesses: ${inventory.routeInventory.argumentAccesses.length}',
+      );
+    if (inventory.routeInventory.declarations.isEmpty) {
+      buffer.writeln('- no route declarations');
+    } else {
+      for (final declaration in inventory.routeInventory.declarations.take(5)) {
+        buffer.writeln(
+          '- `${declaration.routeName}` -> `${declaration.pageBuilder}` at ${declaration.filePath}:${declaration.lineStart}',
+        );
+      }
+    }
+    if (inventory.routeInventory.invocations.isEmpty) {
+      buffer.writeln('- no route invocations');
+    } else {
+      for (final invocation in inventory.routeInventory.invocations.take(5)) {
+        buffer.writeln(
+          '- `${invocation.methodName}` `${invocation.routeName}` at ${invocation.filePath}:${invocation.lineStart}',
+        );
+      }
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('## Network Inventory')
+      ..writeln('- clients: ${inventory.networkInventory.clients.length}');
+    if (inventory.networkInventory.clients.isEmpty) {
+      buffer.writeln('- no GetConnect clients');
+    } else {
+      for (final client in inventory.networkInventory.clients.take(5)) {
+        buffer.writeln(
+          '- `${client.clientName}` methods=${client.publicMethods.join(', ')} auth=${client.hasAuthenticator} modifier=${client.hasRequestModifier} decoder=${client.hasDecoder}',
+        );
+      }
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('## Controller Inventory')
+      ..writeln(
+        '- controllers: ${inventory.controllerInventory.controllers.length}',
+      );
+    if (inventory.controllerInventory.controllers.isEmpty) {
+      buffer.writeln('- no controller complexity entries');
+    } else {
+      for (final controller in inventory.controllerInventory.controllers.take(
+        5,
+      )) {
+        buffer.writeln(
+          '- `${controller.controllerName}` score=${controller.totalScore} risk=${controller.riskLevel.wireName} deps=${controller.dependencyCount} api=${controller.apiCallCount} nav=${controller.navigationCallCount} ui=${controller.uiHelperCallCount}',
+        );
+      }
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('## Explainable Findings');
+    if (inventory.findingDrillDowns.isEmpty) {
+      buffer.writeln('- no explainable findings');
+    } else {
+      for (final drillDown in inventory.findingDrillDowns) {
+        buffer
+          ..writeln('### ${drillDown.findingId}')
+          ..writeln('- why risky: ${drillDown.whyRisky}')
+          ..writeln('- next action: ${drillDown.nextAction}');
+        if (drillDown.relatedSteps.isEmpty) {
+          buffer.writeln('- related steps: none');
+        } else {
+          buffer.writeln(
+            '- related steps: ${drillDown.relatedSteps.join(', ')}',
+          );
+        }
+        for (final evidence in drillDown.evidence) {
+          buffer.writeln('- evidence: $evidence');
+        }
+      }
+    }
+
+    buffer
+      ..writeln()
       ..writeln('## Recommended Order');
     if (inventory.recommendedOrder.isEmpty) {
       buffer.writeln('1. No recommended steps were generated.');

@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a capability that improves migration planning or safe automation. / migration planning 또는 안전한 자동화를 개선하는 기능을 제안합니다.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What migration pain point does this address? / 어떤 migration pain point를 해결하나요?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Describe the desired behavior and why it belongs in GetXDrop. / 원하는 동작과 GetXDrop에 필요한 이유를 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and safety
+      description: Explain whether this is analysis-only, planning output, or any form of code modification. / 분석 전용인지, planning output인지, 코드 수정이 포함되는지 적어주세요.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: examples
+    attributes:
+      label: Real examples
+      description: Provide sample GetX code or migration scenarios if possible. / 가능하면 실제 GetX 코드나 migration scenario를 적어주세요.

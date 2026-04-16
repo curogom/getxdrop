@@ -59,6 +59,11 @@ class AuditEngine {
   }) {
     final parseFailures = <ParseFailure>[];
     final findings = <_FindingDraft>[];
+    final routeDeclarations = <RouteDeclaration>[];
+    final routeInvocations = <RouteInvocation>[];
+    final routeArgumentAccesses = <RouteArgumentAccess>[];
+    final networkClients = <NetworkClient>[];
+    final controllerComplexities = <ControllerComplexity>[];
     var analyzedFiles = 0;
 
     for (final entry in sources.entries.sortedBy((entry) => entry.key)) {
@@ -89,6 +94,11 @@ class AuditEngine {
       );
       result.unit.visitChildren(visitor);
       findings.addAll(visitor.findings);
+      routeDeclarations.addAll(visitor.routeDeclarations);
+      routeInvocations.addAll(visitor.routeInvocations);
+      routeArgumentAccesses.addAll(visitor.routeArgumentAccesses);
+      networkClients.addAll(visitor.networkClients);
+      controllerComplexities.addAll(visitor.controllerComplexities);
     }
 
     final finalizedFindings = _finalizeFindings(findings);
@@ -121,6 +131,21 @@ class AuditEngine {
       summary: summary,
       riskSummary: riskSummary,
       findings: finalizedFindings,
+      routeInventory: RouteInventory(
+        declarations: routeDeclarations.sorted(_compareRouteDeclaration),
+        invocations: routeInvocations.sorted(_compareRouteInvocation),
+        argumentAccesses: routeArgumentAccesses.sorted(
+          _compareRouteArgumentAccess,
+        ),
+      ),
+      networkInventory: NetworkInventory(
+        clients: networkClients.sorted(_compareNetworkClient),
+      ),
+      controllerInventory: ControllerInventory(
+        controllers: controllerComplexities.sorted(
+          _compareControllerComplexity,
+        ),
+      ),
       recommendedOrder: _buildRecommendedOrder(finalizedFindings),
     );
 
@@ -163,6 +188,68 @@ class AuditEngine {
     }
     return true;
   }
+}
+
+int _compareRouteDeclaration(RouteDeclaration left, RouteDeclaration right) {
+  final fileCompare = left.filePath.compareTo(right.filePath);
+  if (fileCompare != 0) {
+    return fileCompare;
+  }
+  final lineCompare = left.lineStart.compareTo(right.lineStart);
+  if (lineCompare != 0) {
+    return lineCompare;
+  }
+  return left.routeName.compareTo(right.routeName);
+}
+
+int _compareRouteInvocation(RouteInvocation left, RouteInvocation right) {
+  final fileCompare = left.filePath.compareTo(right.filePath);
+  if (fileCompare != 0) {
+    return fileCompare;
+  }
+  final lineCompare = left.lineStart.compareTo(right.lineStart);
+  if (lineCompare != 0) {
+    return lineCompare;
+  }
+  return left.routeName.compareTo(right.routeName);
+}
+
+int _compareRouteArgumentAccess(
+  RouteArgumentAccess left,
+  RouteArgumentAccess right,
+) {
+  final fileCompare = left.filePath.compareTo(right.filePath);
+  if (fileCompare != 0) {
+    return fileCompare;
+  }
+  return left.lineStart.compareTo(right.lineStart);
+}
+
+int _compareNetworkClient(NetworkClient left, NetworkClient right) {
+  final fileCompare = left.filePath.compareTo(right.filePath);
+  if (fileCompare != 0) {
+    return fileCompare;
+  }
+  final lineCompare = left.lineStart.compareTo(right.lineStart);
+  if (lineCompare != 0) {
+    return lineCompare;
+  }
+  return left.clientName.compareTo(right.clientName);
+}
+
+int _compareControllerComplexity(
+  ControllerComplexity left,
+  ControllerComplexity right,
+) {
+  final scoreCompare = right.totalScore.compareTo(left.totalScore);
+  if (scoreCompare != 0) {
+    return scoreCompare;
+  }
+  final fileCompare = left.filePath.compareTo(right.filePath);
+  if (fileCompare != 0) {
+    return fileCompare;
+  }
+  return left.lineStart.compareTo(right.lineStart);
 }
 
 List<Finding> _finalizeFindings(List<_FindingDraft> drafts) {
@@ -286,16 +373,27 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
   final LineInfo lineInfo;
   final List<String> _lines;
   final List<_FindingDraft> findings = <_FindingDraft>[];
+  final List<RouteDeclaration> routeDeclarations = <RouteDeclaration>[];
+  final List<RouteInvocation> routeInvocations = <RouteInvocation>[];
+  final List<RouteArgumentAccess> routeArgumentAccesses =
+      <RouteArgumentAccess>[];
+  final List<NetworkClient> networkClients = <NetworkClient>[];
+  final List<ControllerComplexity> controllerComplexities =
+      <ControllerComplexity>[];
 
   bool _inGetxController = false;
   bool _inBindingsClass = false;
   bool _inGetConnect = false;
+  _NetworkClientDraft? _activeNetworkClient;
+  _ControllerComplexityDraft? _activeControllerComplexity;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     final previousGetxController = _inGetxController;
     final previousBindings = _inBindingsClass;
     final previousGetConnect = _inGetConnect;
+    final previousNetworkClient = _activeNetworkClient;
+    final previousControllerComplexity = _activeControllerComplexity;
 
     final allTypes = <String?>[
       node.extendsClause?.superclass.name.lexeme,
@@ -308,6 +406,23 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
     _inGetxController = allTypes.contains('GetxController');
     _inBindingsClass = allTypes.contains('Bindings');
     _inGetConnect = allTypes.contains('GetConnect');
+    if (_inGetConnect) {
+      _activeNetworkClient = _NetworkClientDraft(
+        clientName: node.name.lexeme,
+        filePath: filePath,
+        lineStart: lineInfo.getLocation(node.name.offset).lineNumber,
+      );
+    }
+    if (_inGetxController) {
+      final startLine = lineInfo.getLocation(node.name.offset).lineNumber;
+      final endLine = lineInfo.getLocation(node.end).lineNumber;
+      _activeControllerComplexity = _ControllerComplexityDraft(
+        controllerName: node.name.lexeme,
+        filePath: filePath,
+        lineStart: startLine,
+        lineCount: endLine - startLine + 1,
+      );
+    }
 
     if (_inGetxController) {
       _record(
@@ -326,12 +441,28 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
         _ruleCatalog['network.getConnect']!,
       );
     }
+    if (allTypes.contains('GetMiddleware')) {
+      _record(
+        node.name.offset,
+        node.name.end,
+        _ruleCatalog['routing.middleware']!,
+      );
+    }
 
     super.visitClassDeclaration(node);
+
+    if (_inGetConnect && _activeNetworkClient != null) {
+      networkClients.add(_activeNetworkClient!.build());
+    }
+    if (_inGetxController && _activeControllerComplexity != null) {
+      controllerComplexities.add(_activeControllerComplexity!.build());
+    }
 
     _inGetxController = previousGetxController;
     _inBindingsClass = previousBindings;
     _inGetConnect = previousGetConnect;
+    _activeNetworkClient = previousNetworkClient;
+    _activeControllerComplexity = previousControllerComplexity;
   }
 
   @override
@@ -343,9 +474,41 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
         node.name.end,
         _ruleCatalog['state.lifecycle']!,
       );
+      _activeControllerComplexity?.lifecycleMethodCount++;
+    }
+    if (_activeNetworkClient != null &&
+        !node.isGetter &&
+        !node.isSetter &&
+        !node.isStatic &&
+        !_isIgnoredNetworkMethod(node.name.lexeme)) {
+      _activeNetworkClient!.publicMethods.add(node.name.lexeme);
     }
 
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (_activeControllerComplexity != null) {
+      for (final variable in node.fields.variables) {
+        if (_isReactiveField(node.fields.type, variable.initializer)) {
+          _activeControllerComplexity!.reactiveFieldCount++;
+        }
+        if (_isGetFindInvocation(variable.initializer)) {
+          _activeControllerComplexity!.dependencyCount++;
+          _activeControllerComplexity!.dependencyFields.add(
+            variable.name.lexeme,
+          );
+          if (_looksLikeApiDependency(variable.name.lexeme, node.fields.type)) {
+            _activeControllerComplexity!.apiDependencyFields.add(
+              variable.name.lexeme,
+            );
+          }
+        }
+      }
+    }
+
+    super.visitFieldDeclaration(node);
   }
 
   @override
@@ -362,13 +525,29 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
     if (rule != null) {
       _record(node.offset, node.end, rule);
     }
+    if (typeName == 'GetPage') {
+      _captureRouteDeclaration(node.argumentList, node.offset);
+    }
+    if (_isRxTypeName(typeName) && !_isExplicitlyTypedRxDeclaration(node)) {
+      _record(node.offset, node.end, _ruleCatalog['state.rxType']!);
+    }
+    for (final argument
+        in node.argumentList.arguments.whereType<NamedExpression>()) {
+      if (argument.name.label.name == 'middlewares') {
+        _record(
+          argument.offset,
+          argument.end,
+          _ruleCatalog['routing.middleware']!,
+        );
+      }
+    }
 
     super.visitInstanceCreationExpression(node);
   }
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.name.lexeme == 'Rx') {
+    if (_isRxTypeName(node.name.lexeme)) {
       _record(node.offset, node.end, _ruleCatalog['state.rxType']!);
     }
     super.visitNamedType(node);
@@ -389,6 +568,9 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
       };
       if (rule != null) {
         _record(node.offset, node.end, rule);
+        if (node.propertyName.name == 'arguments') {
+          _captureRouteArgumentAccess(node.offset);
+        }
       }
     }
 
@@ -406,6 +588,9 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
       };
       if (rule != null) {
         _record(node.offset, node.end, rule);
+        if (node.identifier.name == 'arguments') {
+          _captureRouteArgumentAccess(node.offset);
+        }
       }
     }
     super.visitPrefixedIdentifier(node);
@@ -416,12 +601,19 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
     if (_inGetConnect &&
         node.leftHandSide.toSource().trim().endsWith('defaultDecoder')) {
       _record(node.offset, node.end, _ruleCatalog['network.decoder']!);
+      _activeNetworkClient?.hasDecoder = true;
     }
     super.visitAssignmentExpression(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    if (node.target == null &&
+        _isRxTypeName(node.methodName.name) &&
+        !_isExplicitlyTypedRxDeclaration(node)) {
+      _record(node.offset, node.end, _ruleCatalog['state.rxType']!);
+    }
+
     final constructorLikeRule = switch (node.methodName.name) {
       'Obx' => _ruleCatalog['state.obx'],
       'GetBuilder' => _ruleCatalog['state.getBuilder'],
@@ -432,6 +624,9 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
     };
     if (constructorLikeRule != null && !_isGetReference(node.target)) {
       _record(node.offset, node.end, constructorLikeRule);
+      if (node.methodName.name == 'GetPage') {
+        _captureRouteDeclaration(node.argumentList, node.offset);
+      }
     }
 
     if (_isGetReference(node.target)) {
@@ -449,6 +644,22 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
       };
       if (rule != null) {
         _record(node.offset, node.end, rule);
+        if (methodName.startsWith('to') || methodName.startsWith('off')) {
+          _captureRouteInvocation(node);
+        }
+      }
+      if (_activeControllerComplexity != null) {
+        if (methodName == 'find') {
+          _activeControllerComplexity!.globalLookupCount++;
+        }
+        if (methodName.startsWith('to') ||
+            methodName.startsWith('off') ||
+            methodName == 'back') {
+          _activeControllerComplexity!.navigationCallCount++;
+        }
+        if (const {'snackbar', 'dialog', 'bottomSheet'}.contains(methodName)) {
+          _activeControllerComplexity!.uiHelperCallCount++;
+        }
       }
     }
 
@@ -461,7 +672,18 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
       };
       if (rule != null) {
         _record(node.offset, node.end, rule);
+        if (methodName == 'addRequestModifier') {
+          _activeNetworkClient?.hasRequestModifier = true;
+        }
+        if (methodName == 'addAuthenticator') {
+          _activeNetworkClient?.hasAuthenticator = true;
+        }
       }
+    }
+
+    if (_activeControllerComplexity != null &&
+        _isApiDependencyTarget(node.target)) {
+      _activeControllerComplexity!.apiCallCount++;
     }
 
     super.visitMethodInvocation(node);
@@ -481,6 +703,180 @@ class _GetxAuditVisitor extends RecursiveAstVisitor<void> {
       return node.propertyName.name == 'Get' || _isGetReference(node.target);
     }
     return false;
+  }
+
+  bool _isRxTypeName(String typeName) {
+    return RegExp(r'^Rx(?:$|[A-Z].*|n.*)$').hasMatch(typeName);
+  }
+
+  bool _isExplicitlyTypedRxDeclaration(AstNode node) {
+    final variableDeclaration = node
+        .thisOrAncestorOfType<VariableDeclaration>();
+    final declarationList = variableDeclaration?.parent;
+    if (declarationList is! VariableDeclarationList) {
+      return false;
+    }
+    final declaredType = declarationList.type;
+    if (declaredType is! NamedType) {
+      return false;
+    }
+    return _isRxTypeName(declaredType.name.lexeme);
+  }
+
+  bool _isReactiveField(TypeAnnotation? declaredType, Expression? initializer) {
+    if (declaredType is NamedType && _isRxTypeName(declaredType.name.lexeme)) {
+      return true;
+    }
+    if (initializer is PropertyAccess &&
+        initializer.propertyName.name == 'obs') {
+      return true;
+    }
+    if (initializer is PrefixedIdentifier &&
+        initializer.identifier.name == 'obs') {
+      return true;
+    }
+    if (initializer is MethodInvocation &&
+        initializer.target == null &&
+        _isRxTypeName(initializer.methodName.name)) {
+      return true;
+    }
+    if (initializer is InstanceCreationExpression &&
+        _isRxTypeName(initializer.constructorName.type.name.lexeme)) {
+      return true;
+    }
+    return false;
+  }
+
+  bool _isGetFindInvocation(Expression? expression) {
+    return expression is MethodInvocation &&
+        expression.methodName.name == 'find' &&
+        _isGetReference(expression.target);
+  }
+
+  bool _looksLikeApiDependency(
+    String variableName,
+    TypeAnnotation? declaredType,
+  ) {
+    final loweredName = variableName.toLowerCase();
+    final typeName = switch (declaredType) {
+      NamedType() => declaredType.name.lexeme.toLowerCase(),
+      _ => '',
+    };
+    return loweredName.contains('api') ||
+        loweredName.contains('client') ||
+        loweredName.contains('repository') ||
+        typeName.contains('api') ||
+        typeName.contains('client') ||
+        typeName.contains('repository');
+  }
+
+  bool _isApiDependencyTarget(Expression? target) {
+    final draft = _activeControllerComplexity;
+    if (draft == null || target == null) {
+      return false;
+    }
+    final identifier = switch (target) {
+      SimpleIdentifier() => target.name,
+      PrefixedIdentifier() => target.identifier.name,
+      PropertyAccess() => target.propertyName.name,
+      _ => null,
+    };
+    if (identifier == null) {
+      return false;
+    }
+    return draft.apiDependencyFields.contains(identifier);
+  }
+
+  void _captureRouteDeclaration(ArgumentList argumentList, int offset) {
+    final namedArguments = <String, Expression>{
+      for (final argument
+          in argumentList.arguments.whereType<NamedExpression>())
+        argument.name.label.name: argument.expression,
+    };
+    final routeName = _stringValueOrSource(namedArguments['name']);
+    if (routeName == null || routeName.isEmpty) {
+      return;
+    }
+
+    routeDeclarations.add(
+      RouteDeclaration(
+        routeName: routeName,
+        filePath: filePath,
+        lineStart: lineInfo.getLocation(offset).lineNumber,
+        pageBuilder: _sourceForExpression(namedArguments['page']) ?? 'unknown',
+        binding: _sourceForExpression(namedArguments['binding']),
+        middlewares: _extractListEntries(namedArguments['middlewares']),
+      ),
+    );
+  }
+
+  void _captureRouteInvocation(MethodInvocation node) {
+    final positionalArguments = node.argumentList.arguments
+        .where((argument) => argument is! NamedExpression)
+        .toList(growable: false);
+    if (positionalArguments.isEmpty) {
+      return;
+    }
+
+    routeInvocations.add(
+      RouteInvocation(
+        methodName: node.methodName.name,
+        routeName:
+            _stringValueOrSource(positionalArguments.first) ??
+            positionalArguments.first.toSource().trim(),
+        filePath: filePath,
+        lineStart: lineInfo.getLocation(node.offset).lineNumber,
+        passesArguments: node.argumentList.arguments
+            .whereType<NamedExpression>()
+            .any((argument) => argument.name.label.name == 'arguments'),
+      ),
+    );
+  }
+
+  void _captureRouteArgumentAccess(int offset) {
+    routeArgumentAccesses.add(
+      RouteArgumentAccess(
+        filePath: filePath,
+        lineStart: lineInfo.getLocation(offset).lineNumber,
+      ),
+    );
+  }
+
+  bool _isIgnoredNetworkMethod(String methodName) {
+    return methodName.startsWith('_') ||
+        const {'onInit', 'onReady', 'onClose'}.contains(methodName);
+  }
+
+  String? _sourceForExpression(Expression? expression) {
+    return expression?.toSource().trim();
+  }
+
+  String? _stringValueOrSource(Expression? expression) {
+    if (expression == null) {
+      return null;
+    }
+    if (expression is StringLiteral) {
+      return expression.stringValue ?? expression.toSource().trim();
+    }
+    return expression.toSource().trim();
+  }
+
+  List<String> _extractListEntries(Expression? expression) {
+    if (expression == null) {
+      return const <String>[];
+    }
+    if (expression is ListLiteral) {
+      return expression.elements
+          .whereType<Expression>()
+          .map((item) => item.toSource().trim())
+          .where((item) => item.isNotEmpty)
+          .toList(growable: false);
+    }
+    final source = expression.toSource().trim();
+    if (source.isEmpty) {
+      return const <String>[];
+    }
+    return <String>[source];
   }
 
   void _record(int offset, int end, _RuleDescriptor descriptor) {
@@ -576,6 +972,124 @@ class _FindingDraft {
   final String migrationHint;
   final String recommendedTarget;
   final bool requiresManualReview;
+}
+
+class _NetworkClientDraft {
+  _NetworkClientDraft({
+    required this.clientName,
+    required this.filePath,
+    required this.lineStart,
+  });
+
+  final String clientName;
+  final String filePath;
+  final int lineStart;
+  bool hasRequestModifier = false;
+  bool hasAuthenticator = false;
+  bool hasDecoder = false;
+  final Set<String> publicMethods = <String>{};
+
+  NetworkClient build() {
+    return NetworkClient(
+      clientName: clientName,
+      filePath: filePath,
+      lineStart: lineStart,
+      hasRequestModifier: hasRequestModifier,
+      hasAuthenticator: hasAuthenticator,
+      hasDecoder: hasDecoder,
+      publicMethods: publicMethods.toList()..sort(),
+    );
+  }
+}
+
+class _ControllerComplexityDraft {
+  _ControllerComplexityDraft({
+    required this.controllerName,
+    required this.filePath,
+    required this.lineStart,
+    required this.lineCount,
+  });
+
+  final String controllerName;
+  final String filePath;
+  final int lineStart;
+  final int lineCount;
+  int dependencyCount = 0;
+  int reactiveFieldCount = 0;
+  int lifecycleMethodCount = 0;
+  int navigationCallCount = 0;
+  int apiCallCount = 0;
+  int globalLookupCount = 0;
+  int uiHelperCallCount = 0;
+  final Set<String> dependencyFields = <String>{};
+  final Set<String> apiDependencyFields = <String>{};
+
+  ControllerComplexity build() {
+    final totalScore =
+        _lineCountScore(lineCount) +
+        (dependencyCount * 2) +
+        (lifecycleMethodCount * 2) +
+        (navigationCallCount * 2) +
+        (apiCallCount * 3) +
+        globalLookupCount +
+        uiHelperCallCount +
+        _reactiveFieldScore(reactiveFieldCount);
+    final riskLevel = totalScore >= 15
+        ? RiskLevel.high
+        : totalScore >= 8
+        ? RiskLevel.medium
+        : RiskLevel.low;
+    final hotspots = <String>[
+      if (dependencyCount > 0) 'dependencies',
+      if (reactiveFieldCount > 0) 'reactiveState',
+      if (lifecycleMethodCount > 0) 'lifecycle',
+      if (navigationCallCount > 0) 'navigation',
+      if (apiCallCount > 0) 'api',
+      if (globalLookupCount > 0) 'globalLookup',
+      if (uiHelperCallCount > 0) 'uiHelper',
+      if (lineCount >= 30) 'size',
+    ];
+
+    return ControllerComplexity(
+      controllerName: controllerName,
+      filePath: filePath,
+      lineStart: lineStart,
+      lineCount: lineCount,
+      dependencyCount: dependencyCount,
+      reactiveFieldCount: reactiveFieldCount,
+      lifecycleMethodCount: lifecycleMethodCount,
+      navigationCallCount: navigationCallCount,
+      apiCallCount: apiCallCount,
+      globalLookupCount: globalLookupCount,
+      uiHelperCallCount: uiHelperCallCount,
+      totalScore: totalScore,
+      riskLevel: riskLevel,
+      hotspots: hotspots,
+    );
+  }
+
+  int _lineCountScore(int value) {
+    if (value >= 60) {
+      return 3;
+    }
+    if (value >= 30) {
+      return 2;
+    }
+    if (value >= 15) {
+      return 1;
+    }
+    return 0;
+  }
+
+  int _reactiveFieldScore(int value) {
+    if (value >= 4) {
+      return 2;
+    }
+    if (value >= 2) {
+      return 1;
+    }
+    return 0;
+  }
 }
 
 @immutable
@@ -781,6 +1295,18 @@ const Map<String, _RuleDescriptor> _ruleCatalog = <String, _RuleDescriptor>{
     recommendedTarget: 'go_router_route_tree',
     requiresManualReview: true,
     fallbackPattern: 'Get.arguments',
+  ),
+  'routing.middleware': _RuleDescriptor(
+    category: FindingCategory.routing,
+    subcategory: 'middleware',
+    riskLevel: RiskLevel.high,
+    confidence: ConfidenceLevel.high,
+    description: 'GetX route middleware detected.',
+    migrationHint:
+        'Inventory middleware redirects and lifecycle coupling before router migration.',
+    recommendedTarget: 'go_router_route_tree',
+    requiresManualReview: true,
+    fallbackPattern: 'GetMiddleware',
   ),
   'ui.snackbar': _RuleDescriptor(
     category: FindingCategory.uiHelper,

@@ -19,14 +19,10 @@ melos:
       run: fvm dart pub get && fvm dart run melos bootstrap
       description: Install workspace dependencies.
     analyze:
-      run: |
-        fvm dart run melos exec --fail-fast -- "dart analyze ."
-        cd examples/sample_getx_app && fvm flutter analyze
+      run: fvm dart run melos exec --fail-fast -- "dart analyze ." && (cd examples/sample_getx_app && fvm flutter analyze)
       description: Analyze workspace packages and the Flutter fixture app.
     test:
-      run: |
-        fvm dart run melos exec --fail-fast -- "dart test"
-        cd examples/sample_getx_app && fvm flutter test
+      run: fvm dart run melos exec --fail-fast -- "dart test" && (cd examples/sample_getx_app && fvm flutter test)
       description: Run package tests and fixture app smoke tests.
     audit:sample:
       run: |

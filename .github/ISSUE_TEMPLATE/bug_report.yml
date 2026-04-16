@@ -1,0 +1,53 @@
+name: Bug report
+description: Report incorrect behavior, missing detection, or broken report output. / 잘못된 동작, 누락 탐지, 리포트 출력 문제를 제보합니다.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken? / 무엇이 잘못되었나요?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Share the smallest GetX code or command sequence that reproduces the issue. / 가장 작은 재현 코드를 적어주세요.
+      placeholder: |
+        1. Run `getxdrop audit ...`
+        2. Inspect `migration_report.json`
+        3. Observe missing or incorrect output
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened? / 기대한 동작은 무엇인가요?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? / 실제로는 무엇이 일어났나요?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: GetXDrop version
+      placeholder: "0.1.0"
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Dart, Flutter, OS, and how you executed the CLI. / Dart, Flutter, OS, CLI 실행 방식을 적어주세요.
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Relevant output
+      description: Paste the relevant CLI output, report excerpt, or failing finding IDs. / 관련 출력이나 finding ID를 붙여주세요.

@@ -55,19 +55,30 @@ class _DoctorCommand extends Command<int> {
     final projectPath = _resolvePath(argResults!['project']! as String);
     final validation = await _ProjectValidator().validate(projectPath);
     final sdkInfo = await _SdkProbe().probe();
+    final issues = <String>[...validation.issues, ...sdkInfo.issues];
+    final warnings = <String>[...sdkInfo.warnings];
+    final isValid = issues.isEmpty;
 
     stdout
       ..writeln('GetXDrop Doctor')
       ..writeln('project: $projectPath')
-      ..writeln('valid: ${validation.isValid}')
+      ..writeln('valid: $isValid')
       ..writeln('dart: ${sdkInfo.dartVersion ?? 'unavailable'}')
       ..writeln('flutter: ${sdkInfo.flutterVersion ?? 'unavailable'}');
 
-    if (validation.issues.isNotEmpty) {
+    if (issues.isNotEmpty) {
       stdout.writeln('issues:');
-      for (final issue in validation.issues) {
+      for (final issue in issues) {
         stdout.writeln('- $issue');
       }
+    }
+    if (warnings.isNotEmpty) {
+      stdout.writeln('warnings:');
+      for (final warning in warnings) {
+        stdout.writeln('- $warning');
+      }
+    }
+    if (issues.isNotEmpty) {
       return 2;
     }
 
@@ -329,82 +340,150 @@ class _ValidationResult {
 
 class _SdkProbe {
   Future<_SdkInfo> probe() async {
-    final flutterVersion =
-        await _readPinnedFlutterVersion() ??
-        await _runVersionCommand(
-          executable: 'fvm',
-          arguments: const <String>['flutter', '--version'],
-        );
-    final dartVersion = Platform.version.split(' ').take(2).join(' ');
-    return _SdkInfo(dartVersion: dartVersion, flutterVersion: flutterVersion);
-  }
+    final dartVersionLabel = _readActiveDartVersion();
+    final dartVersion = _SemanticVersion.tryParse(dartVersionLabel);
+    final flutterInfo = await _probeFlutter();
+    final issues = <String>[];
+    final warnings = <String>[];
 
-  Future<String?> _readPinnedFlutterVersion() async {
-    final versionFile = _findPinnedFlutterVersionFile();
-    if (versionFile == null || !await File(versionFile).exists()) {
-      return null;
-    }
-
-    try {
-      final json =
-          jsonDecode(await File(versionFile).readAsString())
-              as Map<String, Object?>;
-      final flutterVersion = json['flutterVersion'];
-      final channel = json['channel'];
-      final repositoryUrl = json['repositoryUrl'];
-      if (flutterVersion is! String || channel is! String) {
-        return null;
-      }
-      final repositorySuffix = repositoryUrl is String ? ' • $repositoryUrl' : '';
-      return 'Flutter $flutterVersion • channel $channel$repositorySuffix';
-    } on FormatException {
-      return null;
-    }
-  }
-
-  String? _findPinnedFlutterVersionFile() {
-    var current = Directory.current.absolute;
-    while (true) {
-      final candidate = p.join(
-        current.path,
-        '.fvm',
-        'flutter_sdk',
-        'bin',
-        'cache',
-        'flutter.version.json',
+    if (dartVersion == null) {
+      issues.add('Unable to parse active Dart SDK version: $dartVersionLabel');
+    } else if (!_verifiedDartFamily.isSameFamilyAs(dartVersion)) {
+      issues.add(
+        'Unsupported Dart SDK version: ${dartVersion.label}. '
+        'GetXDrop verifies Dart ${_verifiedDartFamily.familyLabel} and recommends $_recommendedDartVersionLabel.',
       );
-      if (File(candidate).existsSync()) {
-        return candidate;
-      }
-
-      final parent = current.parent;
-      if (parent.path == current.path) {
-        return null;
-      }
-      current = parent;
+    } else if (!_recommendedDartVersion.isSameVersionAs(dartVersion)) {
+      warnings.add(
+        'Recommended Dart SDK is $_recommendedDartVersionLabel, '
+        'but active Dart is ${dartVersion.label}.',
+      );
     }
+
+    if (flutterInfo.errorMessage != null) {
+      issues.add(flutterInfo.errorMessage!);
+    } else if (flutterInfo.version != null &&
+        !_verifiedFlutterFamily.isSameFamilyAs(flutterInfo.version!)) {
+      issues.add(
+        'Unsupported Flutter SDK version: ${flutterInfo.version!.label}. '
+        'GetXDrop verifies Flutter ${_verifiedFlutterFamily.familyLabel} and recommends $_recommendedFlutterVersionLabel.',
+      );
+    } else if (flutterInfo.version != null &&
+        !_recommendedFlutterVersion.isSameVersionAs(flutterInfo.version!)) {
+      warnings.add(
+        'Recommended Flutter SDK is $_recommendedFlutterVersionLabel, '
+        'but active Flutter is ${flutterInfo.version!.label}.',
+      );
+    }
+
+    return _SdkInfo(
+      dartVersion: dartVersionLabel,
+      flutterVersion: flutterInfo.version?.label,
+      issues: issues,
+      warnings: warnings,
+    );
   }
 
-  Future<String?> _runVersionCommand({
-    required String executable,
-    required List<String> arguments,
-  }) async {
+  String _readActiveDartVersion() {
+    final match = RegExp(r'(\d+\.\d+\.\d+)').firstMatch(Platform.version);
+    return match?.group(1) ?? Platform.version.split(' ').take(2).join(' ');
+  }
+
+  Future<_FlutterProbeResult> _probeFlutter() async {
     try {
-      final result = await Process.run(executable, arguments);
+      final result = await Process.run('flutter', const <String>[
+        '--version',
+        '--machine',
+      ]);
       if (result.exitCode != 0) {
-        return null;
+        final stderrOutput = '${result.stderr}'.trim();
+        final message = stderrOutput.isEmpty
+            ? 'Unable to read Flutter SDK version from PATH.'
+            : 'Unable to read Flutter SDK version: $stderrOutput';
+        return _FlutterProbeResult(errorMessage: message);
       }
-      final lines = '${result.stdout}'.trim().split('\n');
-      return lines.isEmpty ? null : lines.first.trim();
+      final payload = jsonDecode('${result.stdout}') as Map<String, Object?>;
+      final versionText =
+          payload['frameworkVersion'] as String? ??
+          payload['flutterVersion'] as String?;
+      if (versionText == null) {
+        return const _FlutterProbeResult(
+          errorMessage:
+              'Unable to parse Flutter SDK version from --machine output.',
+        );
+      }
+      return _FlutterProbeResult(
+        version: _SemanticVersion.tryParse(versionText),
+      );
     } on ProcessException {
-      return null;
+      return const _FlutterProbeResult(
+        errorMessage: 'Flutter executable not found in PATH.',
+      );
+    } on FormatException {
+      return const _FlutterProbeResult(
+        errorMessage:
+            'Unable to parse Flutter SDK version from --machine output.',
+      );
     }
   }
 }
 
 class _SdkInfo {
-  const _SdkInfo({required this.dartVersion, required this.flutterVersion});
+  const _SdkInfo({
+    required this.dartVersion,
+    required this.flutterVersion,
+    this.issues = const <String>[],
+    this.warnings = const <String>[],
+  });
 
   final String? dartVersion;
   final String? flutterVersion;
+  final List<String> issues;
+  final List<String> warnings;
 }
+
+class _FlutterProbeResult {
+  const _FlutterProbeResult({this.version, this.errorMessage});
+
+  final _SemanticVersion? version;
+  final String? errorMessage;
+}
+
+class _SemanticVersion {
+  const _SemanticVersion(this.major, this.minor, this.patch);
+
+  final int major;
+  final int minor;
+  final int patch;
+
+  String get label => '$major.$minor.$patch';
+
+  String get familyLabel => '$major.$minor.x';
+
+  bool isSameFamilyAs(_SemanticVersion other) {
+    return other.major == major && other.minor == minor;
+  }
+
+  bool isSameVersionAs(_SemanticVersion other) {
+    return isSameFamilyAs(other) && other.patch == patch;
+  }
+
+  static _SemanticVersion? tryParse(String value) {
+    final match = RegExp(r'^(\d+)\.(\d+)\.(\d+)$').firstMatch(value.trim());
+    if (match == null) {
+      return null;
+    }
+    return _SemanticVersion(
+      int.parse(match.group(1)!),
+      int.parse(match.group(2)!),
+      int.parse(match.group(3)!),
+    );
+  }
+}
+
+const _recommendedDartVersion = _SemanticVersion(3, 11, 4);
+const _verifiedDartFamily = _SemanticVersion(3, 11, 0);
+const _recommendedFlutterVersion = _SemanticVersion(3, 41, 6);
+const _verifiedFlutterFamily = _SemanticVersion(3, 41, 0);
+const _recommendedDartVersionLabel = '3.11.4';
+const _recommendedFlutterVersionLabel = '3.41.6';

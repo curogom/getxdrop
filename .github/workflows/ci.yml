@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Activate FVM
+        run: dart pub global activate fvm
+
+      - name: Add Pub Cache To PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap Workspace
+        run: |
+          fvm install
+          fvm use --force
+          fvm dart pub get
+
+      - name: Analyze
+        run: fvm dart run melos run analyze
+
+      - name: Test
+        run: fvm dart run melos run test

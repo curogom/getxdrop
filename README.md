@@ -1,116 +1,67 @@
-# GetXDrop Handoff Set
+# GetXDrop
 
-GetXDrop는 레거시 GetX 기반 Flutter 앱을 `GoRouter + Dio + Riverpod 3` 구조로 이관하기 위한 마이그레이션 워크벤치다.
+[![CI](https://github.com/curogom/getxdrop/actions/workflows/ci.yml/badge.svg)](https://github.com/curogom/getxdrop/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0b8a74.svg)](https://github.com/curogom/getxdrop/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/curogom/getxdrop?display_name=tag)](https://github.com/curogom/getxdrop/releases)
 
-이 문서 셋은 Codex가 바로 구현에 착수할 수 있도록 프로젝트 정의, 아키텍처, CLI 스펙, 분석 규칙, 리포트 스키마, 로드맵, 작업 순서를 정리한 핸드오프 패키지다.
+Languages:
+[English](README.md) |
+[한국어](README.ko.md) |
+[日本語](README.ja.md) |
+[简体中文](README.zh-Hans.md) |
+[Español](README.es.md) |
+[Português (BR)](README.pt-BR.md)
 
-## 문서 목록
+GetXDrop is a CLI-first migration workbench for legacy GetX-based Flutter apps.
 
-- `01_project_overview.md`
-- `02_product_requirements.md`
-- `03_system_architecture.md`
-- `04_cli_spec.md`
-- `05_audit_rules.md`
-- `06_report_schema.md`
-- `07_execution_plan.md`
-- `08_codex_kickoff_prompt.md`
-- `docs/roadmap.md`
-- `docs/master_plan.md`
+It is not a one-click rewrite tool. It helps teams answer the two questions that matter first:
 
-## 핵심 방향
+- What in this codebase is risky?
+- What should we migrate first?
 
-- 이름: **GetXDrop**
-- 약칭: **GXD**
-- 기본 repo/package/CLI: **`getxdrop`**
-- 이 프로젝트는 원클릭 자동변환기가 아니다.
-- 1차 목표는 **GetX 의존성을 분해 가능한 상태로 시각화**하는 것이다.
-- 1차 구현 우선순위는 `audit` → `report` → `scaffold` → `apply-safe` 순서다.
+Today, GetXDrop focuses on `doctor`, `audit`, and `report`. It analyzes GetX usage, writes machine-readable artifacts, and turns that analysis into a migration report with route, network, controller, and finding-level planning context.
 
-## 초기 목표 스택
+- Repository: [github.com/curogom/getxdrop](https://github.com/curogom/getxdrop)
+- Issues: [github.com/curogom/getxdrop/issues](https://github.com/curogom/getxdrop/issues)
+- Discussions: [github.com/curogom/getxdrop/discussions](https://github.com/curogom/getxdrop/discussions)
+- Site: [curogom.github.io/getxdrop](https://curogom.github.io/getxdrop/)
 
-- Routing: GoRouter
-- Network: Dio
-- State / reactive dependency graph: Riverpod 3
-- Optional bridge: GetIt only behind an explicit flag
+![GetXDrop preview](https://curogom.github.io/getxdrop/assets/og-preview.svg)
 
-## 비목표
+## Why
 
-- GetX 전체 영역 100% 자동 변환
-- 의미 추론이 필요한 위젯 트리 전면 재작성
-- Bindings / SmartManager / GetConnect 동작 보존의 완전 자동화
-- 복잡한 네비게이션 흐름 무손실 치환
+When a widely used package becomes uncertain, teams need a response path immediately.
 
-## Toolchain
+GetXDrop is built for that first response window:
 
-- Flutter SDK manager: `fvm`
-- Pinned Flutter: `3.41.6`
-- Bundled Dart: `3.11.4`
-- 기준: 2026-04-16 시점 stable channel latest를 exact version으로 고정
+- inspect a real GetX app quickly
+- surface migration hotspots without pretending the rewrite is trivial
+- give teams enough structure to plan a staged move to `GoRouter + Dio + Riverpod 3`
 
-이 저장소는 floating `stable` 채널이 아니라 검증 가능한 exact version을 사용한다.
-새로운 안정 버전으로 올릴 때만 `.fvmrc`를 갱신한다.
+## Available Now (`v0.1`)
 
-## Local Setup
+- `doctor` for project and toolchain validation
+- `audit` for GetX usage analysis
+- `report` for markdown and JSON migration reports
+- route inventory
+- network inventory
+- controller complexity scoring
+- explainable finding drill-down
+- sample app regression coverage
+- CI baseline for analyze and test
 
-`fvm`이 설치되어 있다면 아래 순서로 동일한 SDK를 맞춘다.
+Not shipped in `v0.1`:
 
-```bash
-fvm install
-fvm use
-fvm flutter --version
-fvm dart --version
-```
+- `getxdrop scaffold`
+- `getxdrop apply-safe`
+- one-click full GetX migration
 
-직접 `flutter` 또는 `dart`를 호출하지 않고 아래 형태를 기본으로 사용한다.
+## Try It In 60 Seconds
 
 ```bash
-fvm flutter test
-fvm dart test
-fvm dart run
-```
-
-루트 워크스페이스 의존성은 아래 명령으로 맞춘다.
-
-```bash
-fvm dart pub get
-```
-
-## Workspace Layout
-
-- `packages/analyzer_core`: AST-first GetX 감사 엔진과 정규화 모델
-- `packages/report_core`: markdown/json 리포트 렌더러
-- `packages/cli`: `doctor`, `audit`, `report` CLI
-- `packages/codemod_core`: 향후 safe-apply용 reserved contract
-- `packages/templates`: 향후 scaffold용 reserved contract
-- `examples/sample_getx_app`: 비교적 복잡한 GetX fixture 앱
-
-## Current Scope
-
-현재 구현 범위는 `Audit MVP`다.
-
-- `doctor`: Flutter 프로젝트 형태와 로컬 toolchain 확인
-- `audit`: `lib/**/*.dart` 기준 GetX 사용 패턴을 분석하고 `inventory.json` 생성
-- `report`: 기존 inventory 또는 fresh audit 결과로 markdown/json 리포트 생성
-
-기본 산출물은 아래 3개로 고정한다.
-
-- `build/getxdrop/inventory.json`
-- `build/getxdrop/migration_report.md`
-- `build/getxdrop/migration_report.json`
-
-## Run Commands
-
-샘플 앱을 대상으로 doctor를 실행한다.
-
-```bash
-cd packages/cli
-fvm dart run bin/getxdrop.dart doctor \
-  --project ../../examples/sample_getx_app
-```
-
-샘플 앱을 audit하고 markdown/json 리포트를 생성한다.
-
-```bash
+git clone https://github.com/curogom/getxdrop
+cd getxdrop
+fvm install && fvm use && fvm dart pub get
 cd packages/cli
 fvm dart run bin/getxdrop.dart audit \
   --project ../../examples/sample_getx_app \
@@ -118,17 +69,23 @@ fvm dart run bin/getxdrop.dart audit \
   --format both
 ```
 
-이미 생성된 inventory가 있으면 report만 다시 만들 수 있다.
+Then open:
+
+- `build/getxdrop/inventory.json`
+- `build/getxdrop/migration_report.json`
+- `build/getxdrop/migration_report.md`
+
+## Commands
+
+Public commands in `v0.1`:
 
 ```bash
-cd packages/cli
-fvm dart run bin/getxdrop.dart report \
-  --project ../../examples/sample_getx_app \
-  --out ../../build/getxdrop \
-  --format both
+getxdrop doctor
+getxdrop audit
+getxdrop report
 ```
 
-Melos helper script도 같이 제공한다.
+Development helpers from the repository root:
 
 ```bash
 fvm dart run melos run analyze
@@ -136,9 +93,106 @@ fvm dart run melos run test
 fvm dart run melos run audit:sample
 ```
 
-## Development Policy
+## Output Contracts
 
-- Toolchain은 `fvm`으로 고정한다.
-- 개발 방식은 TDD를 기본으로 한다.
-- 모든 구현은 `Red -> Green -> Refactor` 사이클을 따른다.
-- 새 기능은 테스트, 최소 구현, 구조 정리 순서로 진행한다.
+Default output directory: `build/getxdrop`
+
+- `inventory.json`
+  `AuditResult` wire shape with top-level `schemaVersion`, `inventory`, and `parseFailures`
+- `migration_report.md`
+  human-readable migration report
+- `migration_report.json`
+  `ProjectInventory` wire shape with top-level `schemaVersion`, `project`, `summary`, `riskSummary`, `categories`, `routeInventory`, `networkInventory`, `controllerInventory`, `findingDrillDowns`, `recommendedOrder`, and `findings`
+
+Schema policy:
+
+- current `inventory.json` schema version: `1`
+- current `migration_report.json` schema version: `1`
+- additive changes should prefer forward-compatible extension
+- incompatible wire-shape changes must be called out explicitly in release notes and docs
+
+## Toolchain Policy
+
+CLI runtime uses the `dart` and `flutter` available in `PATH`.
+
+- verified Dart family: `3.11.x`
+- verified Flutter family: `3.41.x`
+- recommended Dart exact version: `3.11.4`
+- recommended Flutter exact version: `3.41.6`
+
+`doctor` behavior:
+
+- verified-family patch drift is reported as `warnings:`
+- unsupported family or missing tooling is reported as `issues:`
+- blocking issues return exit code `2`
+
+Repository development remains pinned through `fvm` for reproducibility.
+
+## Distribution Policy
+
+`v0.1.x` is GitHub-first.
+
+- primary public home: GitHub repository
+- primary release channel: GitHub Releases
+- public site: GitHub Pages
+- current package registry stance: not published to pub.dev yet
+
+This is intentional: the current CLI depends on `getxdrop_analyzer_core` and `getxdrop_report_core`, so a future pub.dev release needs a package-level publication strategy for the dependency set, not just the executable wrapper.
+
+## Public Roadmap
+
+### Now
+
+- `doctor`, `audit`, `report`
+- stable report artifacts
+- route / network / controller planning slices
+- explainable finding drill-down
+
+### Next
+
+- `getxdrop.yaml` project config support
+- schema versioning and config validation
+- sharper CI/PR-friendly CLI summaries
+
+### Later
+
+- `scaffold` assistant for `GoRouter + Dio + Riverpod 3`
+- `apply-safe` dry-run-first rewrite candidates
+- richer `explain`, `diff`, and `stats` workflows
+
+## Repository Layout
+
+- `packages/analyzer_core`: audit engine and normalized inventory models
+- `packages/report_core`: report renderers
+- `packages/cli`: CLI entrypoint
+- `packages/codemod_core`: reserved future safe-apply contracts
+- `packages/templates`: reserved future scaffold contracts
+- `examples/sample_getx_app`: fixture app for regression coverage
+- `site/`: static public landing page
+- `docs/`: public roadmap, release, operations, and internal docs
+
+## Docs
+
+Public project docs:
+
+- [docs/README.md](docs/README.md)
+- [docs/roadmap.md](docs/roadmap.md)
+- [docs/master_plan.md](docs/master_plan.md)
+- [docs/public_release_checklist.md](docs/public_release_checklist.md)
+- [docs/maintainer_operations.md](docs/maintainer_operations.md)
+- [docs/release_and_support_policy.md](docs/release_and_support_policy.md)
+- [docs/distribution_strategy.md](docs/distribution_strategy.md)
+- [docs/github_launch_runbook.md](docs/github_launch_runbook.md)
+
+Internal design and implementation docs:
+
+- [docs/internal/README.md](docs/internal/README.md)
+
+## Contributing
+
+See:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [SECURITY.md](SECURITY.md)
+- [CHANGELOG.md](CHANGELOG.md)

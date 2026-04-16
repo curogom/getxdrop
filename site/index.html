@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GetXDrop | GetX Migration Starts Here</title>
+    <meta
+      name="description"
+      content="GetXDrop is a CLI-first migration workbench for legacy GetX Flutter apps."
+    />
+    <link rel="canonical" href="https://curogom.github.io/getxdrop/" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f6f1e7" />
+    <meta property="og:title" content="GetXDrop | GetX Migration Starts Here" />
+    <meta
+      property="og:description"
+      content="GetXDrop is a CLI-first migration workbench for legacy GetX Flutter apps."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://curogom.github.io/getxdrop/" />
+    <meta
+      property="og:image"
+      content="https://curogom.github.io/getxdrop/assets/og-preview.svg"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GetXDrop | GetX Migration Starts Here" />
+    <meta
+      name="twitter:description"
+      content="GetXDrop is a CLI-first migration workbench for legacy GetX Flutter apps."
+    />
+    <meta
+      name="twitter:image"
+      content="https://curogom.github.io/getxdrop/assets/og-preview.svg"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="GetXDrop home">
+          <span class="brand-mark">GXD</span>
+          <div class="brand-copy">
+            <span class="brand-name">GetXDrop</span>
+            <span class="brand-sub" data-i18n="brand.sub"></span>
+          </div>
+        </a>
+
+        <div class="header-actions">
+          <nav class="site-nav" aria-label="Primary">
+            <a href="#why" data-i18n="nav.why"></a>
+            <a href="#features" data-i18n="nav.features"></a>
+            <a href="#artifacts" data-i18n="nav.artifacts"></a>
+            <a href="#roadmap" data-i18n="nav.roadmap"></a>
+          </nav>
+
+          <label class="lang-picker">
+            <span data-i18n="lang.label"></span>
+            <select id="lang-select" aria-label="Language switch">
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+              <option value="ja">日本語</option>
+              <option value="zh">简体中文</option>
+              <option value="es">Español</option>
+              <option value="pt-BR">Português (BR)</option>
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" id="top">
+          <div class="hero-copy panel">
+            <p class="badge" data-i18n="hero.badge"></p>
+            <h1 data-i18n-html="hero.title"></h1>
+            <p class="hero-lede" data-i18n="hero.body"></p>
+
+            <div class="hero-actions">
+              <a
+                class="button button-primary"
+                href="https://github.com/curogom/getxdrop/blob/main/README.md"
+                data-i18n="hero.primaryCta"
+              ></a>
+              <a class="button button-secondary" href="#quickstart" data-i18n="hero.secondaryCta"></a>
+            </div>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span class="stat-value">3</span>
+                <span class="stat-label" data-i18n="hero.stats.commands"></span>
+              </article>
+              <article class="stat-card">
+                <span class="stat-value">4</span>
+                <span class="stat-label" data-i18n="hero.stats.slices"></span>
+              </article>
+              <article class="stat-card">
+                <span class="stat-value">CI</span>
+                <span class="stat-label" data-i18n="hero.stats.ci"></span>
+              </article>
+            </div>
+          </div>
+
+          <div class="hero-side">
+            <section class="panel terminal-panel">
+              <div class="panel-topline">
+                <p class="section-kicker" data-i18n="terminal.kicker"></p>
+                <p class="panel-note" data-i18n="terminal.note"></p>
+              </div>
+              <div class="terminal-window">
+                <div class="terminal-chrome">
+                  <span></span><span></span><span></span>
+                </div>
+                <pre><code>$ getxdrop doctor --project ./legacy_app
+GetXDrop Doctor
+valid: true
+dart: 3.11.4
+flutter: 3.41.6
+checks passed.
+
+$ getxdrop audit --project ./legacy_app --format both
+Audit completed.
+findings: 113
+parse failures: 0
+
+$ getxdrop report --project ./legacy_app --format both
+Generated routeInventory, networkInventory,
+controllerInventory, findingDrillDowns</code></pre>
+              </div>
+            </section>
+
+            <section class="panel proof-panel">
+              <p class="section-kicker" data-i18n="proof.kicker"></p>
+              <h2 class="panel-title" data-i18n="proof.title"></h2>
+              <ul class="proof-list">
+                <li data-i18n="proof.item1"></li>
+                <li data-i18n="proof.item2"></li>
+                <li data-i18n="proof.item3"></li>
+              </ul>
+            </section>
+          </div>
+        </section>
+
+        <section class="section" id="why">
+          <div class="section-heading">
+            <p class="section-kicker" data-i18n="why.kicker"></p>
+            <h2 data-i18n="why.title"></h2>
+            <p class="section-body" data-i18n="why.body"></p>
+          </div>
+
+          <div class="three-up">
+            <article class="info-card">
+              <h3 data-i18n="why.card1.title"></h3>
+              <p data-i18n="why.card1.body"></p>
+            </article>
+            <article class="info-card">
+              <h3 data-i18n="why.card2.title"></h3>
+              <p data-i18n="why.card2.body"></p>
+            </article>
+            <article class="info-card">
+              <h3 data-i18n="why.card3.title"></h3>
+              <p data-i18n="why.card3.body"></p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="features">
+          <div class="section-heading">
+            <p class="section-kicker" data-i18n="features.kicker"></p>
+            <h2 data-i18n="features.title"></h2>
+            <p class="section-body" data-i18n="features.body"></p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card feature-card-highlight">
+              <span class="feature-tag" data-i18n="features.audit.tag"></span>
+              <h3 data-i18n="features.audit.title"></h3>
+              <p data-i18n="features.audit.body"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-tag" data-i18n="features.routing.tag"></span>
+              <h3 data-i18n="features.routing.title"></h3>
+              <p data-i18n="features.routing.body"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-tag" data-i18n="features.network.tag"></span>
+              <h3 data-i18n="features.network.title"></h3>
+              <p data-i18n="features.network.body"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-tag" data-i18n="features.controllers.tag"></span>
+              <h3 data-i18n="features.controllers.title"></h3>
+              <p data-i18n="features.controllers.body"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-tag" data-i18n="features.explain.tag"></span>
+              <h3 data-i18n="features.explain.title"></h3>
+              <p data-i18n="features.explain.body"></p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-tag" data-i18n="features.trust.tag"></span>
+              <h3 data-i18n="features.trust.title"></h3>
+              <p data-i18n="features.trust.body"></p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section artifact-section" id="artifacts">
+          <div class="section-heading">
+            <p class="section-kicker" data-i18n="artifacts.kicker"></p>
+            <h2 data-i18n="artifacts.title"></h2>
+            <p class="section-body" data-i18n="artifacts.body"></p>
+          </div>
+
+          <div class="artifact-layout">
+            <div class="artifact-list">
+              <article class="artifact-card">
+                <h3>`inventory.json`</h3>
+                <p data-i18n="artifacts.inventory"></p>
+              </article>
+              <article class="artifact-card">
+                <h3>`migration_report.json`</h3>
+                <p data-i18n="artifacts.reportJson"></p>
+              </article>
+              <article class="artifact-card">
+                <h3>`migration_report.md`</h3>
+                <p data-i18n="artifacts.reportMd"></p>
+              </article>
+            </div>
+
+            <div class="artifact-preview">
+              <div class="json-card">
+                <p class="json-caption" data-i18n="artifacts.previewTitle"></p>
+                <pre><code>{
+  "routeInventory": { "declarations": [...], "invocations": [...] },
+  "networkInventory": { "clients": [...] },
+  "controllerInventory": { "controllers": [...] },
+  "findingDrillDowns": [
+    {
+      "findingId": "GXD-NET-001",
+      "whyRisky": "...",
+      "nextAction": "...",
+      "relatedSteps": ["Network abstraction migration"],
+      "evidence": ["DemoApiClient uses request modifier, authenticator, decoder"]
+    }
+  ]
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="quickstart">
+          <div class="section-heading">
+            <p class="section-kicker" data-i18n="quickstart.kicker"></p>
+            <h2 data-i18n="quickstart.title"></h2>
+          </div>
+
+          <div class="quickstart-grid">
+            <article class="step-card">
+              <span class="step-number">01</span>
+              <h3 data-i18n="quickstart.step1.title"></h3>
+              <pre><code>fvm install
+fvm use
+fvm dart pub get</code></pre>
+            </article>
+            <article class="step-card">
+              <span class="step-number">02</span>
+              <h3 data-i18n="quickstart.step2.title"></h3>
+              <pre><code>cd packages/cli
+fvm dart run bin/getxdrop.dart audit \
+  --project ../../examples/sample_getx_app \
+  --out ../../build/getxdrop \
+  --format both</code></pre>
+            </article>
+            <article class="step-card">
+              <span class="step-number">03</span>
+              <h3 data-i18n="quickstart.step3.title"></h3>
+              <pre><code>build/getxdrop/inventory.json
+build/getxdrop/migration_report.json
+build/getxdrop/migration_report.md</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="roadmap">
+          <div class="section-heading">
+            <p class="section-kicker" data-i18n="roadmap.kicker"></p>
+            <h2 data-i18n="roadmap.title"></h2>
+            <p class="section-body" data-i18n="roadmap.body"></p>
+          </div>
+
+          <div class="roadmap-grid">
+            <article class="roadmap-card roadmap-now">
+              <p class="roadmap-label" data-i18n="roadmap.now.label"></p>
+              <ul>
+                <li data-i18n="roadmap.now.item1"></li>
+                <li data-i18n="roadmap.now.item2"></li>
+                <li data-i18n="roadmap.now.item3"></li>
+              </ul>
+            </article>
+            <article class="roadmap-card roadmap-next">
+              <p class="roadmap-label" data-i18n="roadmap.next.label"></p>
+              <ul>
+                <li data-i18n="roadmap.next.item1"></li>
+                <li data-i18n="roadmap.next.item2"></li>
+                <li data-i18n="roadmap.next.item3"></li>
+              </ul>
+            </article>
+            <article class="roadmap-card roadmap-later">
+              <p class="roadmap-label" data-i18n="roadmap.later.label"></p>
+              <ul>
+                <li data-i18n="roadmap.later.item1"></li>
+                <li data-i18n="roadmap.later.item2"></li>
+                <li data-i18n="roadmap.later.item3"></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section cta-section">
+          <div class="cta-card panel">
+            <p class="section-kicker" data-i18n="cta.kicker"></p>
+            <h2 data-i18n="cta.title"></h2>
+            <p class="section-body" data-i18n="cta.body"></p>
+            <div class="hero-actions">
+              <a
+                class="button button-primary"
+                href="https://github.com/curogom/getxdrop/blob/main/CHANGELOG.md"
+                data-i18n="cta.primary"
+              ></a>
+              <a
+                class="button button-secondary"
+                href="https://github.com/curogom/getxdrop/blob/main/docs/roadmap.md"
+                data-i18n="cta.secondary"
+              ></a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

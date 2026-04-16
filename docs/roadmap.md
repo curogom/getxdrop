@@ -9,10 +9,17 @@
 ### Phase 1: Audit MVP
 - Deliver `doctor`, `audit`, and `report`.
 - Generate markdown and JSON reports with risk and ordering guidance.
+- Stabilize `inventory.json` and `migration_report.json` wire shapes.
+- Add regression coverage against the sample GetX app.
+- Add minimal CI for `melos run analyze` and `melos run test`.
+- Keep `scaffold` and `apply-safe` out of scope for this phase.
 
 ### Phase 2: Guided Planning
 - Add deeper route and network inventory.
+  Route and network inventory slices are now landing in the report output.
 - Add controller complexity scoring and config support.
+  Controller complexity slices are now landing in the report output.
+  Explainable finding drill-down is now landing in the report output.
 
 ### Phase 3: Scaffold Assistant
 - Generate target architecture skeletons for GoRouter, Dio, and Riverpod.

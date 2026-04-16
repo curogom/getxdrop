@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/curogom/getxdrop/security
+    about: Report security-sensitive issues through GitHub Security Advisories when possible.
+  - name: Project roadmap
+    url: https://github.com/curogom/getxdrop/blob/main/docs/roadmap.md
+    about: Review the current public roadmap before proposing larger feature work.

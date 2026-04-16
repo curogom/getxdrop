@@ -1,0 +1,47 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#F6F1E7"/>
+  <circle cx="120" cy="90" r="220" fill="#F7B27D" fill-opacity="0.28"/>
+  <circle cx="1460" cy="90" r="200" fill="#89C8BA" fill-opacity="0.26"/>
+  <circle cx="1440" cy="810" r="180" fill="#F7B27D" fill-opacity="0.2"/>
+  <rect x="72" y="56" width="1456" height="788" rx="40" fill="#FFFDF8" fill-opacity="0.82" stroke="#D8D0C2"/>
+  <rect x="120" y="104" width="1360" height="78" rx="24" fill="#FFF9F0" stroke="#DDD4C6"/>
+  <circle cx="175" cy="143" r="28" fill="url(#paint0_linear_1_2)"/>
+  <text x="175" y="150" text-anchor="middle" fill="white" font-size="22" font-family="system-ui, -apple-system, sans-serif" font-weight="700">GXD</text>
+  <text x="222" y="137" fill="#182118" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="700">GetXDrop</text>
+  <text x="222" y="164" fill="#566354" font-size="16" font-family="system-ui, -apple-system, sans-serif" letter-spacing="2">OPEN-SOURCE MIGRATION WORKBENCH</text>
+  <rect x="120" y="230" width="740" height="520" rx="34" fill="#FFFCF5" stroke="#DDD4C6"/>
+  <rect x="900" y="230" width="580" height="520" rx="34" fill="#FFF8ED" stroke="#DDD4C6"/>
+  <rect x="156" y="270" width="190" height="42" rx="21" fill="#DDF0EA"/>
+  <text x="182" y="297" fill="#08594C" font-size="16" font-family="system-ui, -apple-system, sans-serif" font-weight="700" letter-spacing="1.5">V0.1 ALPHA</text>
+  <text x="156" y="396" fill="#182118" font-size="74" font-family="Georgia, 'Times New Roman', serif" font-weight="700">
+    <tspan x="156" dy="0">When GetX becomes</tspan>
+    <tspan x="156" dy="82">uncertain, migration</tspan>
+    <tspan x="156" dy="82">planning cannot wait.</tspan>
+  </text>
+  <text x="156" y="646" fill="#566354" font-size="28" font-family="system-ui, -apple-system, sans-serif">
+    <tspan x="156" dy="0">Audit legacy GetX Flutter apps. Generate route, network,</tspan>
+    <tspan x="156" dy="42">controller, and explainable planning output before rewrites begin.</tspan>
+  </text>
+  <rect x="156" y="696" width="220" height="58" rx="29" fill="#0B8A74"/>
+  <text x="266" y="733" text-anchor="middle" fill="white" font-size="22" font-family="system-ui, -apple-system, sans-serif" font-weight="700">doctor / audit / report</text>
+  <rect x="940" y="270" width="500" height="300" rx="28" fill="#0F1A15"/>
+  <rect x="940" y="270" width="500" height="44" rx="28" fill="#17251E"/>
+  <circle cx="972" cy="292" r="7" fill="#FF7E34"/>
+  <circle cx="996" cy="292" r="7" fill="#F0C24F"/>
+  <circle cx="1020" cy="292" r="7" fill="#1EB996"/>
+  <text x="972" y="362" fill="#D6F5DF" font-size="22" font-family="'SFMono-Regular', Consolas, monospace">$ getxdrop doctor --project ./legacy_app</text>
+  <text x="972" y="398" fill="#D6F5DF" font-size="22" font-family="'SFMono-Regular', Consolas, monospace">valid: true</text>
+  <text x="972" y="434" fill="#D6F5DF" font-size="22" font-family="'SFMono-Regular', Consolas, monospace">dart: 3.11.4</text>
+  <text x="972" y="470" fill="#D6F5DF" font-size="22" font-family="'SFMono-Regular', Consolas, monospace">flutter: 3.41.6</text>
+  <text x="972" y="506" fill="#D6F5DF" font-size="22" font-family="'SFMono-Regular', Consolas, monospace">checks passed.</text>
+  <text x="940" y="642" fill="#08594C" font-size="18" font-family="system-ui, -apple-system, sans-serif" font-weight="700" letter-spacing="2">NOW SHIPPING</text>
+  <text x="940" y="694" fill="#182118" font-size="34" font-family="system-ui, -apple-system, sans-serif" font-weight="800">Route inventory</text>
+  <text x="940" y="742" fill="#182118" font-size="34" font-family="system-ui, -apple-system, sans-serif" font-weight="800">Network inventory</text>
+  <text x="940" y="790" fill="#182118" font-size="34" font-family="system-ui, -apple-system, sans-serif" font-weight="800">Controller complexity</text>
+  <defs>
+    <linearGradient id="paint0_linear_1_2" x1="147" y1="115" x2="203" y2="171" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B8A74"/>
+      <stop offset="1" stop-color="#EC6F26"/>
+    </linearGradient>
+  </defs>
+</svg>

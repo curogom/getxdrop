@@ -16,7 +16,7 @@ GetXDrop는 크게 4개 기능을 제공한다.
 
 감지 대상 예시:
 - `.obs`
-- `Rx<T>`
+- `Rx*`
 - `Obx`
 - `GetBuilder`
 - `GetxController`

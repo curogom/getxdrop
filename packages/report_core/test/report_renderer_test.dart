@@ -57,6 +57,63 @@ void main() {
           relatedFindingIds: <String>['GXD-NET-001'],
         ),
       ],
+      routeInventory: const RouteInventory(
+        declarations: <RouteDeclaration>[
+          RouteDeclaration(
+            routeName: '/login',
+            filePath: 'lib/routes.dart',
+            lineStart: 12,
+            pageBuilder: 'LoginPage.new',
+            binding: 'LoginBinding()',
+            middlewares: <String>['AuthGuard()'],
+          ),
+        ],
+        invocations: <RouteInvocation>[
+          RouteInvocation(
+            methodName: 'toNamed',
+            routeName: '/login',
+            filePath: 'lib/login_controller.dart',
+            lineStart: 40,
+            passesArguments: true,
+          ),
+        ],
+        argumentAccesses: <RouteArgumentAccess>[
+          RouteArgumentAccess(filePath: 'lib/dashboard.dart', lineStart: 18),
+        ],
+      ),
+      networkInventory: const NetworkInventory(
+        clients: <NetworkClient>[
+          NetworkClient(
+            clientName: 'DemoApiClient',
+            filePath: 'lib/demo_api_client.dart',
+            lineStart: 6,
+            hasRequestModifier: true,
+            hasAuthenticator: true,
+            hasDecoder: true,
+            publicMethods: <String>['authenticate', 'fetchProducts'],
+          ),
+        ],
+      ),
+      controllerInventory: const ControllerInventory(
+        controllers: <ControllerComplexity>[
+          ControllerComplexity(
+            controllerName: 'CatalogController',
+            filePath: 'lib/catalog_controller.dart',
+            lineStart: 8,
+            lineCount: 48,
+            dependencyCount: 2,
+            reactiveFieldCount: 4,
+            lifecycleMethodCount: 1,
+            navigationCallCount: 1,
+            apiCallCount: 1,
+            globalLookupCount: 2,
+            uiHelperCallCount: 2,
+            totalScore: 14,
+            riskLevel: RiskLevel.high,
+            hotspots: <String>['dependencies', 'api', 'navigation', 'uiHelper'],
+          ),
+        ],
+      ),
     );
 
     const renderer = ReportRenderer();
@@ -76,6 +133,13 @@ void main() {
       expect(markdown, contains('## Summary'));
       expect(markdown, contains('### State'));
       expect(markdown, contains('### Network'));
+      expect(markdown, contains('## Route Inventory'));
+      expect(markdown, contains('## Network Inventory'));
+      expect(markdown, contains('## Controller Inventory'));
+      expect(markdown, contains('## Explainable Findings'));
+      expect(markdown, contains('CatalogController'));
+      expect(markdown, contains('Network abstraction migration'));
+      expect(markdown, contains('DemoApiClient'));
       expect(markdown, contains('## Parse Failures'));
       expect(markdown, contains('### Finding GXD-STATE-001'));
       expect(markdown, contains('### Finding GXD-NET-001'));
@@ -84,10 +148,15 @@ void main() {
     test('renders json snapshot from inventory', () {
       final json = renderer.renderJson(inventory);
 
+      expect(json, contains('"schemaVersion": 1'));
       expect(json, contains('"rootPath": "/repo/sample"'));
       expect(json, contains('"totalDartFiles": 3'));
       expect(json, contains('"riskLevel": "high"'));
       expect(json, contains('"recommendedOrder"'));
+      expect(json, contains('"routeInventory"'));
+      expect(json, contains('"networkInventory"'));
+      expect(json, contains('"controllerInventory"'));
+      expect(json, contains('"findingDrillDowns"'));
     });
   });
 }

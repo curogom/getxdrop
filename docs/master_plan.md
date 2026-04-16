@@ -7,7 +7,7 @@
   - Service roadmap for user value and adoption
   - Development roadmap for implementation and architecture
 - The current execution slice is `Audit MVP`.
-- The immediate target is a working `doctor + audit + report` flow against `examples/sample_getx_app`.
+- The immediate target is a working `doctor + audit + report` flow against `examples/sample_getx_app`, with stable output contracts and CI verification.
 
 ## Working Principles
 
@@ -33,14 +33,17 @@
 - UX:
   - `doctor`, `audit`, and `report` should cover the first diagnosis workflow.
 - Outputs:
+  - `inventory.json` as `AuditResult`
   - Markdown report
-  - JSON report
+  - `migration_report.json` as `ProjectInventory`
   - Parse failure inventory
   - Category and risk summaries
 - Success criteria:
   - The tool answers both:
     - What is risky?
     - What should be migrated first?
+  - The sample app is covered by regression tests across State, DI, Routing, UI Helper, and Network.
+  - `melos run analyze` and `melos run test` are green in CI.
 
 ### Phase 2: Guided Planning
 
@@ -52,6 +55,9 @@
   - Controller complexity score
   - Explainable finding drill-down
   - `getxdrop.yaml`
+- Current status:
+  - Route inventory, network inventory, controller complexity, and explainable finding drill-down are now present in the report output.
+  - Config support remains pending.
 - Success criteria:
   - A team can derive a migration work breakdown directly from CLI output.
 
@@ -130,7 +136,7 @@
 - Restrict string fallback scanning to parse-failure files.
 - Initial rule coverage:
   - `.obs`
-  - `Rx<T>`
+  - `Rx*`
   - `Obx`
   - `GetBuilder`
   - `GetxController`
@@ -144,6 +150,7 @@
   - `Get.to*`
   - `Get.off*`
   - `Get.arguments`
+  - route middleware
   - UI helpers
   - `GetConnect`
 
@@ -164,6 +171,9 @@
   - `doctor`
   - `audit`
   - `report`
+- Do not expose:
+  - `scaffold`
+  - `apply-safe`
 - Standardize output directory:
   - `build/getxdrop/`
 - Standardize artifacts:
@@ -174,12 +184,18 @@
   - success
   - invalid project
   - partial analysis
+- `doctor` should:
+  - validate project shape
+  - inspect PATH runtime
+  - print `issues:` and `warnings:` separately
+  - treat verified-family drift as warning, not failure
 
 ### Phase E: Validation and Docs
 
 - Lock fixture expectations with integration tests.
 - Document setup and execution in the repo.
 - Maintain regression checks against the sample GetX app.
+- Add minimal GitHub Actions for analyze and test.
 
 ### Phase F: Scaffold Prep
 
@@ -207,7 +223,8 @@
   - Flutter project shape
   - `pubspec.yaml`
   - `lib/`
-  - local Flutter and Dart version visibility
+  - active PATH Flutter and Dart version visibility
+  - verified family and recommended exact versions
 - `audit` scans:
   - `lib/**/*.dart`
   - optionally `test/**/*.dart` with `--include-test`
@@ -229,6 +246,10 @@
 - This slice does not expose:
   - `scaffold`
   - `apply-safe`
+- Development policy for this slice:
+  - TDD by default
+  - `Red -> Green -> Refactor`
+  - tests before behavior changes
 
 ## Public Interfaces
 
@@ -280,6 +301,7 @@
 ### CLI Integration
 
 - `doctor` succeeds on a valid sample app.
+- `doctor` returns exit code `0` with warnings for supported family drift.
 - `doctor` returns exit code `2` for invalid projects.
 - `audit` writes inventory and reports.
 - `report` reuses existing inventory.
@@ -295,12 +317,14 @@
   - Network
 - Required detections include:
   - `.obs`
+  - `Rx*`
   - `Obx`
   - `Get.put`
   - `Get.find`
   - `GetMaterialApp`
   - `Get.to*`
   - `Get.arguments`
+  - route middleware
   - `GetConnect`
 - The fixture must produce at least one `low`, `medium`, and `high` risk finding.
 
