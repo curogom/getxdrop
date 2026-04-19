@@ -1,6 +1,6 @@
 name: getxdrop_codemod_core
 description: Reserved codemod planning types for future GetXDrop safe-apply work.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 homepage: https://github.com/curogom/getxdrop
 repository: https://github.com/curogom/getxdrop

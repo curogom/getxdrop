@@ -24,7 +24,7 @@ Today, GetXDrop focuses on `doctor`, `audit`, and `report`. It analyzes GetX usa
 - Repository: [github.com/curogom/getxdrop](https://github.com/curogom/getxdrop)
 - Issues: [github.com/curogom/getxdrop/issues](https://github.com/curogom/getxdrop/issues)
 - Discussions: [github.com/curogom/getxdrop/discussions](https://github.com/curogom/getxdrop/discussions)
-- Announcement: [GetXDrop v0.1.0 is live](https://github.com/curogom/getxdrop/discussions/8)
+- Latest release: [GetXDrop v0.2.0](https://github.com/curogom/getxdrop/releases/tag/v0.2.0)
 - Site: [curogom.github.io/getxdrop](https://curogom.github.io/getxdrop/)
 
 ![GetXDrop preview](https://curogom.github.io/getxdrop/assets/og-preview.svg)
@@ -39,19 +39,24 @@ GetXDrop is built for that first response window:
 - surface migration hotspots without pretending the rewrite is trivial
 - give teams enough structure to plan a staged move to `GoRouter + Dio + Riverpod 3`
 
-## Available Now (`v0.1`)
+## Available Now (`v0.2`)
 
 - `doctor` for project and toolchain validation
 - `audit` for GetX usage analysis
 - `report` for markdown and JSON migration reports
+- optional `getxdrop.yaml` project config
+- default `summary.json` artifact for `audit` and `report`
+- compact stdout summaries for CI and PR logs
+- hotspot ranking for files, controllers, route modules, categories, and subcategories
 - route inventory
 - network inventory
 - controller complexity scoring
 - explainable finding drill-down
 - sample app regression coverage
+- dedicated sample app CLI end-to-end flow coverage
 - CI baseline for analyze and test
 
-Not shipped in `v0.1`:
+Not shipped in `v0.2`:
 
 - `getxdrop scaffold`
 - `getxdrop apply-safe`
@@ -73,12 +78,29 @@ fvm dart run bin/getxdrop.dart audit \
 Then open:
 
 - `build/getxdrop/inventory.json`
+- `build/getxdrop/summary.json`
 - `build/getxdrop/migration_report.json`
 - `build/getxdrop/migration_report.md`
 
+Optional project config:
+
+```yaml
+version: 1
+
+audit:
+  include_test: false
+  ignore: []
+
+output:
+  path: build/getxdrop
+
+report:
+  format: both
+```
+
 ## Commands
 
-Public commands in `v0.1`:
+Public commands in `v0.2`:
 
 ```bash
 getxdrop doctor
@@ -100,17 +122,32 @@ Default output directory: `build/getxdrop`
 
 - `inventory.json`
   `AuditResult` wire shape with top-level `schemaVersion`, `inventory`, and `parseFailures`
+- `summary.json`
+  `CommandSummary` wire shape with top-level `schemaVersion`, `command`, `project`, `status`, `exitCode`, `summary`, `riskSummary`, `categoryCounts`, `planningCounts`, and `topHotspots`
 - `migration_report.md`
   human-readable migration report
 - `migration_report.json`
-  `ProjectInventory` wire shape with top-level `schemaVersion`, `project`, `summary`, `riskSummary`, `categories`, `routeInventory`, `networkInventory`, `controllerInventory`, `findingDrillDowns`, `recommendedOrder`, and `findings`
+  `ProjectInventory` wire shape with top-level `schemaVersion`, `project`, `summary`, `riskSummary`, `categories`, `routeInventory`, `networkInventory`, `controllerInventory`, `hotspotInventory`, `findingDrillDowns`, `recommendedOrder`, and `findings`
 
 Schema policy:
 
 - current `inventory.json` schema version: `1`
+- current `summary.json` schema version: `1`
 - current `migration_report.json` schema version: `1`
 - additive changes should prefer forward-compatible extension
 - incompatible wire-shape changes must be called out explicitly in release notes and docs
+
+## Config Precedence
+
+`getxdrop.yaml` is optional and only loaded from the project root passed to the CLI.
+
+- precedence: `CLI flags > getxdrop.yaml > built-in defaults`
+- `output.path` is resolved relative to the project root
+- `audit.ignore` merges config values with CLI `--ignore`
+- `report.format` sets the default format for `getxdrop report`
+- `audit` keeps its existing behavior: report artifacts are only written when `--format` is provided
+
+Blocking config problems are reported as exit code `2`.
 
 ## Toolchain Policy
 
@@ -131,7 +168,7 @@ Repository development remains pinned through `fvm` for reproducibility.
 
 ## Distribution Policy
 
-`v0.1.x` is GitHub-first.
+`v0.2.x` is GitHub-first.
 
 - primary public home: GitHub repository
 - primary release channel: GitHub Releases
@@ -145,21 +182,22 @@ This is intentional: the current CLI depends on `getxdrop_analyzer_core` and `ge
 ### Now
 
 - `doctor`, `audit`, `report`
-- stable report artifacts
+- `getxdrop.yaml` config support
+- stable artifacts: `inventory.json`, `summary.json`, `migration_report.*`
+- hotspot ranking and top-hotspot summaries
 - route / network / controller planning slices
 - explainable finding drill-down
+- compact CI / PR-friendly CLI summaries
 
 ### Next
 
-- `getxdrop.yaml` project config support
-- schema versioning and config validation
-- sharper CI/PR-friendly CLI summaries
+- `scaffold` assistant for `GoRouter + Dio + Riverpod 3`
+- `apply-safe` dry-run-first rewrite candidates
 
 ### Later
 
-- `scaffold` assistant for `GoRouter + Dio + Riverpod 3`
-- `apply-safe` dry-run-first rewrite candidates
 - richer `explain`, `diff`, and `stats` workflows
+- baseline compare and team-friendly CI integrations
 
 ## Repository Layout
 

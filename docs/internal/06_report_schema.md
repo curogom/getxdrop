@@ -3,6 +3,7 @@
 ## 1) 출력 파일
 
 - `inventory.json`
+- `summary.json`
 - `migration_report.md`
 - `migration_report.json`
 
@@ -60,7 +61,63 @@ top-level:
 - `inventory`
 - `parseFailures`
 
-## 3) `migration_report.json`
+## 3) `summary.json`
+
+`summary.json`은 `CommandSummary` wire shape를 사용한다.
+
+```json
+{
+  "schemaVersion": 1,
+  "command": "audit",
+  "project": {
+    "rootPath": ".",
+    "generatedAt": "2026-04-18T00:00:00Z"
+  },
+  "status": "success",
+  "exitCode": 0,
+  "summary": {
+    "totalDartFiles": 128,
+    "analyzedFiles": 121,
+    "parseFailures": 7,
+    "totalFindings": 243
+  },
+  "riskSummary": {
+    "low": 98,
+    "medium": 91,
+    "high": 54
+  },
+  "categoryCounts": {
+    "state": 80,
+    "di": 32,
+    "routing": 51,
+    "uiHelper": 27,
+    "network": 53
+  },
+  "planningCounts": {
+    "routeDeclarations": 6,
+    "routeInvocations": 17,
+    "routeArgumentAccesses": 4,
+    "networkClients": 2,
+    "controllers": 5,
+    "explainableFindings": 243,
+    "recommendedSteps": 4
+  }
+}
+```
+
+top-level:
+- `schemaVersion`
+- `command`
+- `project`
+- `status`
+- `exitCode`
+- `summary`
+- `riskSummary`
+- `categoryCounts`
+- `planningCounts`
+- `topHotspots`
+
+## 4) `migration_report.json`
 
 `migration_report.json`은 `ProjectInventory` wire shape를 사용한다.
 
@@ -115,11 +172,12 @@ top-level:
 - `routeInventory`
 - `networkInventory`
 - `controllerInventory`
+- `hotspotInventory`
 - `findingDrillDowns`
 - `recommendedOrder`
 - `findings`
 
-## 4) `migration_report.md`
+## 5) `migration_report.md`
 
 ```md
 # GetXDrop Migration Report
@@ -174,11 +232,12 @@ top-level:
 ...
 ```
 
-## 5) 공통 필드 상세
+## 6) 공통 필드 상세
 
-## 5-1) Schema Versioning Policy
+## 6-1) Schema Versioning Policy
 
 - `inventory.json` top-level `schemaVersion` 현재 값: `1`
+- `summary.json` top-level `schemaVersion` 현재 값: `1`
 - `migration_report.json` top-level `schemaVersion` 현재 값: `1`
 - additive field 추가는 가능한 한 forward-compatible 하게 진행한다.
 - incompatible wire-shape 변경은 release note, `README.md`, `docs/internal/04_cli_spec.md`, `docs/internal/06_report_schema.md`에 함께 반영한다.
@@ -195,10 +254,46 @@ top-level:
 - `parseFailures`
 - `totalFindings`
 
+### status
+- `success`
+- `partial`
+
 ### riskSummary
 - `low`
 - `medium`
 - `high`
+
+### categoryCounts
+- `state`
+- `di`
+- `routing`
+- `uiHelper`
+- `network`
+
+### planningCounts
+- `routeDeclarations`
+- `routeInvocations`
+- `routeArgumentAccesses`
+- `networkClients`
+- `controllers`
+- `explainableFindings`
+- `recommendedSteps`
+
+### topHotspots[]
+- `kind`
+- `label`
+- `filePath?`
+- `score`
+- `riskLevel`
+- `reasons[]`
+
+### hotspotInventory
+- `topOverall[]`
+- `topFiles[]`
+- `topControllers[]`
+- `topRouteModules[]`
+- `topCategories[]`
+- `topSubcategories[]`
 
 ### findings[]
 - `id`

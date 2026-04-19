@@ -20,6 +20,7 @@
 - Add controller complexity scoring and config support.
   Controller complexity slices are now landing in the report output.
   Explainable finding drill-down is now landing in the report output.
+  `getxdrop.yaml`, `summary.json`, compact CLI summaries, and hotspot ranking now close this phase.
 
 ### Phase 3: Scaffold Assistant
 - Generate target architecture skeletons for GoRouter, Dio, and Riverpod.
@@ -29,6 +30,7 @@
 
 ### Phase 5: Team Adoption
 - Stabilize machine-readable outputs and CI integration.
+  `summary.json` and compact CLI summaries now provide the first CI-friendly baseline.
 
 ### Phase 6: Optional Product Expansion
 - Consider richer report UX only after the CLI workflow is stable.

@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 const int kProjectInventorySchemaVersion = 1;
 const int kAuditResultSchemaVersion = 1;
+const int kCommandSummarySchemaVersion = 1;
 
 enum FindingCategory {
   state,
@@ -600,6 +601,127 @@ class FindingDrillDown {
   }
 }
 
+enum HotspotKind {
+  file,
+  controller,
+  routeModule,
+  category,
+  subcategory;
+
+  String get wireName => switch (this) {
+    HotspotKind.file => 'file',
+    HotspotKind.controller => 'controller',
+    HotspotKind.routeModule => 'routeModule',
+    HotspotKind.category => 'category',
+    HotspotKind.subcategory => 'subcategory',
+  };
+
+  static HotspotKind fromWireName(String value) => switch (value) {
+    'file' => HotspotKind.file,
+    'controller' => HotspotKind.controller,
+    'routeModule' => HotspotKind.routeModule,
+    'category' => HotspotKind.category,
+    'subcategory' => HotspotKind.subcategory,
+    _ => throw ArgumentError.value(value, 'value', 'Unknown hotspot kind'),
+  };
+}
+
+@immutable
+class HotspotEntry {
+  const HotspotEntry({
+    required this.kind,
+    required this.label,
+    this.filePath,
+    required this.score,
+    required this.riskLevel,
+    this.reasons = const <String>[],
+  });
+
+  final HotspotKind kind;
+  final String label;
+  final String? filePath;
+  final int score;
+  final RiskLevel riskLevel;
+  final List<String> reasons;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'kind': kind.wireName,
+    'label': label,
+    'filePath': filePath,
+    'score': score,
+    'riskLevel': riskLevel.wireName,
+    'reasons': reasons,
+  };
+
+  factory HotspotEntry.fromJson(Map<String, Object?> json) {
+    return HotspotEntry(
+      kind: HotspotKind.fromWireName(json['kind']! as String),
+      label: json['label']! as String,
+      filePath: json['filePath'] as String?,
+      score: json['score']! as int,
+      riskLevel: RiskLevel.fromWireName(json['riskLevel']! as String),
+      reasons: (json['reasons'] as List<Object?>? ?? const <Object?>[])
+          .cast<String>(),
+    );
+  }
+}
+
+@immutable
+class HotspotInventory {
+  const HotspotInventory({
+    this.topOverall = const <HotspotEntry>[],
+    this.topFiles = const <HotspotEntry>[],
+    this.topControllers = const <HotspotEntry>[],
+    this.topRouteModules = const <HotspotEntry>[],
+    this.topCategories = const <HotspotEntry>[],
+    this.topSubcategories = const <HotspotEntry>[],
+  });
+
+  final List<HotspotEntry> topOverall;
+  final List<HotspotEntry> topFiles;
+  final List<HotspotEntry> topControllers;
+  final List<HotspotEntry> topRouteModules;
+  final List<HotspotEntry> topCategories;
+  final List<HotspotEntry> topSubcategories;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'topOverall': topOverall
+        .map((item) => item.toJson())
+        .toList(growable: false),
+    'topFiles': topFiles.map((item) => item.toJson()).toList(growable: false),
+    'topControllers': topControllers
+        .map((item) => item.toJson())
+        .toList(growable: false),
+    'topRouteModules': topRouteModules
+        .map((item) => item.toJson())
+        .toList(growable: false),
+    'topCategories': topCategories
+        .map((item) => item.toJson())
+        .toList(growable: false),
+    'topSubcategories': topSubcategories
+        .map((item) => item.toJson())
+        .toList(growable: false),
+  };
+
+  factory HotspotInventory.fromJson(Map<String, Object?> json) {
+    List<HotspotEntry> decodeList(String key) {
+      return (json[key] as List<Object?>? ?? const <Object?>[])
+          .cast<Map<String, Object?>>()
+          .map(HotspotEntry.fromJson)
+          .toList(growable: false);
+    }
+
+    return HotspotInventory(
+      topOverall: decodeList('topOverall'),
+      topFiles: decodeList('topFiles'),
+      topControllers: decodeList('topControllers'),
+      topRouteModules: decodeList('topRouteModules'),
+      topCategories: decodeList('topCategories'),
+      topSubcategories: decodeList('topSubcategories'),
+    );
+  }
+}
+
 @immutable
 class ProjectInventory {
   const ProjectInventory({
@@ -633,6 +755,8 @@ class ProjectInventory {
       .map((finding) => _buildFindingDrillDown(this, finding))
       .toList(growable: false);
 
+  HotspotInventory get hotspotInventory => _buildHotspotInventory(this);
+
   Map<String, Object?> toJson({
     bool includeSchemaVersion = true,
   }) => <String, Object?>{
@@ -649,6 +773,7 @@ class ProjectInventory {
     'routeInventory': routeInventory.toJson(),
     'networkInventory': networkInventory.toJson(),
     'controllerInventory': controllerInventory.toJson(),
+    'hotspotInventory': hotspotInventory.toJson(),
     'findingDrillDowns': findingDrillDowns
         .map((item) => item.toJson())
         .toList(growable: false),
@@ -877,6 +1002,567 @@ class AuditResult {
           .toList(growable: false),
     );
   }
+}
+
+@immutable
+class PlanningCounts {
+  const PlanningCounts({
+    required this.routeDeclarations,
+    required this.routeInvocations,
+    required this.routeArgumentAccesses,
+    required this.networkClients,
+    required this.controllers,
+    required this.explainableFindings,
+    required this.recommendedSteps,
+  });
+
+  final int routeDeclarations;
+  final int routeInvocations;
+  final int routeArgumentAccesses;
+  final int networkClients;
+  final int controllers;
+  final int explainableFindings;
+  final int recommendedSteps;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'routeDeclarations': routeDeclarations,
+    'routeInvocations': routeInvocations,
+    'routeArgumentAccesses': routeArgumentAccesses,
+    'networkClients': networkClients,
+    'controllers': controllers,
+    'explainableFindings': explainableFindings,
+    'recommendedSteps': recommendedSteps,
+  };
+
+  factory PlanningCounts.fromJson(Map<String, Object?> json) {
+    return PlanningCounts(
+      routeDeclarations: json['routeDeclarations']! as int,
+      routeInvocations: json['routeInvocations']! as int,
+      routeArgumentAccesses: json['routeArgumentAccesses']! as int,
+      networkClients: json['networkClients']! as int,
+      controllers: json['controllers']! as int,
+      explainableFindings: json['explainableFindings']! as int,
+      recommendedSteps: json['recommendedSteps']! as int,
+    );
+  }
+}
+
+@immutable
+class CommandSummary {
+  const CommandSummary({
+    required this.command,
+    required this.project,
+    required this.status,
+    required this.exitCode,
+    required this.summary,
+    required this.riskSummary,
+    required this.categoryCounts,
+    required this.planningCounts,
+    this.topHotspots = const <HotspotEntry>[],
+  });
+
+  final String command;
+  final ProjectMetadata project;
+  final String status;
+  final int exitCode;
+  final SummaryStats summary;
+  final RiskSummary riskSummary;
+  final Map<String, int> categoryCounts;
+  final PlanningCounts planningCounts;
+  final List<HotspotEntry> topHotspots;
+
+  factory CommandSummary.fromAuditResult(
+    AuditResult result, {
+    required String command,
+    required int exitCode,
+  }) {
+    final inventory = result.inventory;
+    return CommandSummary(
+      command: command,
+      project: inventory.project,
+      status: result.hasRecoverableIssues ? 'partial' : 'success',
+      exitCode: exitCode,
+      summary: inventory.summary,
+      riskSummary: inventory.riskSummary,
+      categoryCounts: <String, int>{
+        for (final category in FindingCategory.values)
+          category.wireName:
+              inventory.categoryGroups[category.wireName]?.length ?? 0,
+      },
+      planningCounts: PlanningCounts(
+        routeDeclarations: inventory.routeInventory.declarations.length,
+        routeInvocations: inventory.routeInventory.invocations.length,
+        routeArgumentAccesses: inventory.routeInventory.argumentAccesses.length,
+        networkClients: inventory.networkInventory.clients.length,
+        controllers: inventory.controllerInventory.controllers.length,
+        explainableFindings: inventory.findingDrillDowns.length,
+        recommendedSteps: inventory.recommendedOrder.length,
+      ),
+      topHotspots: inventory.hotspotInventory.topOverall,
+    );
+  }
+
+  Map<String, Object?> toJson() => <String, Object?>{
+    'schemaVersion': kCommandSummarySchemaVersion,
+    'command': command,
+    'project': project.toJson(),
+    'status': status,
+    'exitCode': exitCode,
+    'summary': summary.toJson(),
+    'riskSummary': riskSummary.toJson(),
+    'categoryCounts': categoryCounts,
+    'planningCounts': planningCounts.toJson(),
+    'topHotspots': topHotspots
+        .map((item) => item.toJson())
+        .toList(growable: false),
+  };
+
+  factory CommandSummary.fromJson(Map<String, Object?> json) {
+    _assertSupportedSchemaVersion(
+      json['schemaVersion'],
+      currentVersion: kCommandSummarySchemaVersion,
+      shapeName: 'CommandSummary',
+    );
+    return CommandSummary(
+      command: json['command']! as String,
+      project: ProjectMetadata.fromJson(
+        json['project']! as Map<String, Object?>,
+      ),
+      status: json['status']! as String,
+      exitCode: json['exitCode']! as int,
+      summary: SummaryStats.fromJson(json['summary']! as Map<String, Object?>),
+      riskSummary: RiskSummary.fromJson(
+        json['riskSummary']! as Map<String, Object?>,
+      ),
+      categoryCounts: (json['categoryCounts']! as Map<String, Object?>).map(
+        (key, value) => MapEntry(key, value! as int),
+      ),
+      planningCounts: PlanningCounts.fromJson(
+        json['planningCounts']! as Map<String, Object?>,
+      ),
+      topHotspots: (json['topHotspots'] as List<Object?>? ?? const <Object?>[])
+          .cast<Map<String, Object?>>()
+          .map(HotspotEntry.fromJson)
+          .toList(growable: false),
+    );
+  }
+
+  String toPrettyJson() => const JsonEncoder.withIndent('  ').convert(toJson());
+}
+
+HotspotInventory _buildHotspotInventory(ProjectInventory inventory) {
+  final topFiles = _buildFileHotspots(inventory);
+  final topControllers = _buildControllerHotspots(inventory);
+  final topRouteModules = _buildRouteModuleHotspots(inventory);
+  final topCategories = _buildCategoryHotspots(inventory);
+  final topSubcategories = _buildSubcategoryHotspots(inventory);
+  final topOverall = <HotspotEntry>[
+    ...topFiles.take(3),
+    ...topControllers.take(3),
+    ...topRouteModules.take(3),
+    ...topCategories.take(3),
+    ...topSubcategories.take(3),
+  ]..sort(_compareHotspotEntry);
+
+  return HotspotInventory(
+    topOverall: topOverall.take(5).toList(growable: false),
+    topFiles: topFiles.take(5).toList(growable: false),
+    topControllers: topControllers.take(5).toList(growable: false),
+    topRouteModules: topRouteModules.take(5).toList(growable: false),
+    topCategories: topCategories.take(5).toList(growable: false),
+    topSubcategories: topSubcategories.take(5).toList(growable: false),
+  );
+}
+
+List<HotspotEntry> _buildFileHotspots(ProjectInventory inventory) {
+  final buckets = <String, _HotspotAccumulator>{};
+
+  _HotspotAccumulator bucketFor(String filePath) =>
+      buckets.putIfAbsent(filePath, _HotspotAccumulator.new);
+
+  final findingCounts = <String, _RiskCounts>{};
+  for (final finding in inventory.findings) {
+    final bucket = bucketFor(finding.filePath);
+    bucket.score += _riskWeight(finding.riskLevel);
+    bucket.elevateRisk(finding.riskLevel);
+    findingCounts
+        .putIfAbsent(finding.filePath, _RiskCounts.new)
+        .add(finding.riskLevel);
+  }
+
+  final controllerScores = <String, int>{};
+  for (final controller in inventory.controllerInventory.controllers) {
+    final bucket = bucketFor(controller.filePath);
+    bucket.score += controller.totalScore;
+    bucket.elevateRisk(controller.riskLevel);
+    controllerScores.update(
+      controller.filePath,
+      (value) => value + controller.totalScore,
+      ifAbsent: () => controller.totalScore,
+    );
+  }
+
+  final routeContexts = <String, _RouteCounts>{};
+  for (final declaration in inventory.routeInventory.declarations) {
+    final bucket = bucketFor(declaration.filePath);
+    final context = routeContexts.putIfAbsent(
+      declaration.filePath,
+      _RouteCounts.new,
+    );
+    context.declarations++;
+    if (declaration.binding != null) {
+      context.bindings++;
+    }
+    context.middlewares += declaration.middlewares.length;
+    final routeScore =
+        4 +
+        (declaration.binding != null ? 2 : 0) +
+        (declaration.middlewares.length * 2);
+    bucket.score += routeScore;
+    bucket.elevateRisk(_scoreToRiskLevel(routeScore));
+  }
+  for (final invocation in inventory.routeInventory.invocations) {
+    final bucket = bucketFor(invocation.filePath);
+    final context = routeContexts.putIfAbsent(
+      invocation.filePath,
+      _RouteCounts.new,
+    );
+    context.invocations++;
+    if (invocation.passesArguments) {
+      context.argumentPassingInvocations++;
+    }
+    final routeScore = 2 + (invocation.passesArguments ? 1 : 0);
+    bucket.score += routeScore;
+    bucket.elevateRisk(_scoreToRiskLevel(routeScore));
+  }
+  for (final access in inventory.routeInventory.argumentAccesses) {
+    final bucket = bucketFor(access.filePath);
+    final context = routeContexts.putIfAbsent(
+      access.filePath,
+      _RouteCounts.new,
+    );
+    context.argumentAccesses++;
+    bucket.score += 2;
+    bucket.elevateRisk(RiskLevel.medium);
+  }
+
+  final networkScores = <String, int>{};
+  for (final client in inventory.networkInventory.clients) {
+    final bucket = bucketFor(client.filePath);
+    final hookCount =
+        (client.hasRequestModifier ? 1 : 0) +
+        (client.hasAuthenticator ? 1 : 0) +
+        (client.hasDecoder ? 1 : 0);
+    final networkScore = 5 + (hookCount * 2) + client.publicMethods.length;
+    bucket.score += networkScore;
+    bucket.elevateRisk(_scoreToRiskLevel(networkScore));
+    networkScores.update(
+      client.filePath,
+      (value) => value + networkScore,
+      ifAbsent: () => networkScore,
+    );
+  }
+
+  final entries = <HotspotEntry>[];
+  for (final entry in buckets.entries) {
+    final filePath = entry.key;
+    final bucket = entry.value;
+    final reasons = <String>[];
+    final counts = findingCounts[filePath];
+    if (counts != null) {
+      if (counts.high > 0) {
+        reasons.add('${counts.high} high-risk findings');
+      } else if (counts.medium > 0) {
+        reasons.add('${counts.medium} medium-risk findings');
+      } else if (counts.low > 0) {
+        reasons.add('${counts.low} low-risk findings');
+      }
+    }
+    final controllerScore = controllerScores[filePath];
+    if (controllerScore != null && controllerScore > 0) {
+      reasons.add('controller complexity $controllerScore');
+    }
+    final routeContext = routeContexts[filePath];
+    if (routeContext != null && routeContext.total > 0) {
+      reasons.add(
+        'route coupling ${routeContext.declarations}/${routeContext.invocations}/${routeContext.argumentAccesses}',
+      );
+    }
+    final networkScore = networkScores[filePath];
+    if (networkScore != null && networkScore > 0) {
+      reasons.add('network boundary $networkScore');
+    }
+    entries.add(
+      HotspotEntry(
+        kind: HotspotKind.file,
+        label: filePath,
+        filePath: filePath,
+        score: bucket.score,
+        riskLevel: bucket.riskLevel,
+        reasons: reasons.take(3).toList(growable: false),
+      ),
+    );
+  }
+
+  entries.sort(_compareHotspotEntry);
+  return entries;
+}
+
+List<HotspotEntry> _buildControllerHotspots(ProjectInventory inventory) {
+  final entries =
+      inventory.controllerInventory.controllers
+          .map((controller) {
+            final reasons = <String>[
+              if (controller.dependencyCount > 0)
+                'dependencies ${controller.dependencyCount}',
+              if (controller.apiCallCount > 0)
+                'api calls ${controller.apiCallCount}',
+              if (controller.navigationCallCount > 0)
+                'navigation calls ${controller.navigationCallCount}',
+              if (controller.uiHelperCallCount > 0)
+                'ui helpers ${controller.uiHelperCallCount}',
+              if (controller.hotspots.isNotEmpty)
+                'hotspots ${controller.hotspots.join(', ')}',
+            ];
+            return HotspotEntry(
+              kind: HotspotKind.controller,
+              label: controller.controllerName,
+              filePath: controller.filePath,
+              score: controller.totalScore,
+              riskLevel: controller.riskLevel,
+              reasons: reasons.take(3).toList(growable: false),
+            );
+          })
+          .toList(growable: false)
+        ..sort(_compareHotspotEntry);
+  return entries;
+}
+
+List<HotspotEntry> _buildRouteModuleHotspots(ProjectInventory inventory) {
+  final contexts = <String, _RouteCounts>{};
+
+  for (final declaration in inventory.routeInventory.declarations) {
+    final context = contexts.putIfAbsent(
+      declaration.filePath,
+      _RouteCounts.new,
+    );
+    context.declarations++;
+    if (declaration.binding != null) {
+      context.bindings++;
+    }
+    context.middlewares += declaration.middlewares.length;
+  }
+  for (final invocation in inventory.routeInventory.invocations) {
+    final context = contexts.putIfAbsent(invocation.filePath, _RouteCounts.new);
+    context.invocations++;
+    if (invocation.passesArguments) {
+      context.argumentPassingInvocations++;
+    }
+  }
+  for (final access in inventory.routeInventory.argumentAccesses) {
+    final context = contexts.putIfAbsent(access.filePath, _RouteCounts.new);
+    context.argumentAccesses++;
+  }
+
+  final entries =
+      contexts.entries
+          .map((entry) {
+            final filePath = entry.key;
+            final context = entry.value;
+            final score =
+                (context.declarations * 4) +
+                (context.bindings * 2) +
+                (context.middlewares * 2) +
+                (context.invocations * 2) +
+                context.argumentPassingInvocations +
+                (context.argumentAccesses * 2);
+            final reasons = <String>[
+              if (context.declarations > 0)
+                'declarations ${context.declarations}',
+              if (context.invocations > 0) 'invocations ${context.invocations}',
+              if (context.argumentAccesses > 0)
+                'argument accesses ${context.argumentAccesses}',
+              if (context.middlewares > 0) 'middlewares ${context.middlewares}',
+              if (context.bindings > 0) 'bindings ${context.bindings}',
+            ];
+            return HotspotEntry(
+              kind: HotspotKind.routeModule,
+              label: filePath,
+              filePath: filePath,
+              score: score,
+              riskLevel: _scoreToRiskLevel(score),
+              reasons: reasons.take(3).toList(growable: false),
+            );
+          })
+          .where((entry) => entry.score > 0)
+          .toList(growable: false)
+        ..sort(_compareHotspotEntry);
+
+  return entries;
+}
+
+List<HotspotEntry> _buildCategoryHotspots(ProjectInventory inventory) {
+  final entries = <HotspotEntry>[];
+  for (final category in FindingCategory.values) {
+    final findings = inventory.categoryGroups[category.wireName] ?? const [];
+    if (findings.isEmpty) {
+      continue;
+    }
+    final counts = _RiskCounts();
+    var score = 0;
+    for (final finding in findings) {
+      counts.add(finding.riskLevel);
+      score += _riskWeight(finding.riskLevel);
+    }
+    final reasons = <String>[
+      '${findings.length} findings',
+      if (counts.high > 0) '${counts.high} high-risk',
+      if (counts.medium > 0) '${counts.medium} medium-risk',
+    ];
+    entries.add(
+      HotspotEntry(
+        kind: HotspotKind.category,
+        label: category.wireName,
+        score: score,
+        riskLevel: counts.maxRiskLevel,
+        reasons: reasons.take(3).toList(growable: false),
+      ),
+    );
+  }
+  entries.sort(_compareHotspotEntry);
+  return entries;
+}
+
+List<HotspotEntry> _buildSubcategoryHotspots(ProjectInventory inventory) {
+  final groups = <String, List<Finding>>{};
+  for (final finding in inventory.findings) {
+    groups.putIfAbsent(finding.subcategory, () => <Finding>[]).add(finding);
+  }
+
+  final entries =
+      groups.entries
+          .map((entry) {
+            final findings = entry.value;
+            final counts = _RiskCounts();
+            var score = 0;
+            for (final finding in findings) {
+              counts.add(finding.riskLevel);
+              score += _riskWeight(finding.riskLevel);
+            }
+            final reasons = <String>[
+              '${findings.length} findings',
+              if (counts.high > 0) '${counts.high} high-risk',
+              if (counts.medium > 0) '${counts.medium} medium-risk',
+            ];
+            return HotspotEntry(
+              kind: HotspotKind.subcategory,
+              label: entry.key,
+              score: score,
+              riskLevel: counts.maxRiskLevel,
+              reasons: reasons.take(3).toList(growable: false),
+            );
+          })
+          .toList(growable: false)
+        ..sort(_compareHotspotEntry);
+
+  return entries;
+}
+
+int _compareHotspotEntry(HotspotEntry left, HotspotEntry right) {
+  final scoreCompare = right.score.compareTo(left.score);
+  if (scoreCompare != 0) {
+    return scoreCompare;
+  }
+  final riskCompare = _riskPriority(
+    right.riskLevel,
+  ).compareTo(_riskPriority(left.riskLevel));
+  if (riskCompare != 0) {
+    return riskCompare;
+  }
+  final kindCompare = left.kind.wireName.compareTo(right.kind.wireName);
+  if (kindCompare != 0) {
+    return kindCompare;
+  }
+  return left.label.compareTo(right.label);
+}
+
+int _riskWeight(RiskLevel riskLevel) => switch (riskLevel) {
+  RiskLevel.low => 1,
+  RiskLevel.medium => 3,
+  RiskLevel.high => 5,
+};
+
+int _riskPriority(RiskLevel riskLevel) => switch (riskLevel) {
+  RiskLevel.low => 1,
+  RiskLevel.medium => 2,
+  RiskLevel.high => 3,
+};
+
+RiskLevel _scoreToRiskLevel(int score) {
+  if (score >= 10) {
+    return RiskLevel.high;
+  }
+  if (score >= 4) {
+    return RiskLevel.medium;
+  }
+  return RiskLevel.low;
+}
+
+class _HotspotAccumulator {
+  _HotspotAccumulator();
+
+  int score = 0;
+  RiskLevel riskLevel = RiskLevel.low;
+
+  void elevateRisk(RiskLevel nextRisk) {
+    if (_riskPriority(nextRisk) > _riskPriority(riskLevel)) {
+      riskLevel = nextRisk;
+    }
+  }
+}
+
+class _RiskCounts {
+  int low = 0;
+  int medium = 0;
+  int high = 0;
+
+  void add(RiskLevel riskLevel) {
+    switch (riskLevel) {
+      case RiskLevel.low:
+        low++;
+      case RiskLevel.medium:
+        medium++;
+      case RiskLevel.high:
+        high++;
+    }
+  }
+
+  RiskLevel get maxRiskLevel {
+    if (high > 0) {
+      return RiskLevel.high;
+    }
+    if (medium > 0) {
+      return RiskLevel.medium;
+    }
+    return RiskLevel.low;
+  }
+}
+
+class _RouteCounts {
+  int declarations = 0;
+  int bindings = 0;
+  int middlewares = 0;
+  int invocations = 0;
+  int argumentPassingInvocations = 0;
+  int argumentAccesses = 0;
+
+  int get total =>
+      declarations +
+      bindings +
+      middlewares +
+      invocations +
+      argumentPassingInvocations +
+      argumentAccesses;
 }
 
 void _assertSupportedSchemaVersion(
