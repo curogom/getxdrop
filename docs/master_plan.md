@@ -6,8 +6,8 @@
 - Planning is managed with aligned phases across two views:
   - Service roadmap for user value and adoption
   - Development roadmap for implementation and architecture
-- The current execution slice is `Audit MVP`.
-- The immediate target is a working `doctor + audit + report` flow against `examples/sample_getx_app`, with stable output contracts and CI verification.
+- The current execution slice is `v0.2.0 / Guided Planning completion`.
+- The immediate target is to close Guided Planning with config support, summary artifacts, and CI-friendly summaries while keeping the public command set fixed at `doctor + audit + report`.
 
 ## Working Principles
 
@@ -34,6 +34,7 @@
   - `doctor`, `audit`, and `report` should cover the first diagnosis workflow.
 - Outputs:
   - `inventory.json` as `AuditResult`
+  - `summary.json` as `CommandSummary`
   - Markdown report
   - `migration_report.json` as `ProjectInventory`
   - Parse failure inventory
@@ -43,6 +44,7 @@
     - What is risky?
     - What should be migrated first?
   - The sample app is covered by regression tests across State, DI, Routing, UI Helper, and Network.
+  - The sample app has a dedicated CLI end-to-end flow test for `doctor -> audit -> report`.
   - `melos run analyze` and `melos run test` are green in CI.
 
 ### Phase 2: Guided Planning
@@ -56,8 +58,8 @@
   - Explainable finding drill-down
   - `getxdrop.yaml`
 - Current status:
-  - Route inventory, network inventory, controller complexity, and explainable finding drill-down are now present in the report output.
-  - Config support remains pending.
+  - Route inventory, network inventory, controller complexity, and explainable finding drill-down are present in the report output.
+  - `getxdrop.yaml`, `summary.json`, compact CLI summaries, and hotspot ranking complete the planning slice in `v0.2.0`.
 - Success criteria:
   - A team can derive a migration work breakdown directly from CLI output.
 
@@ -178,6 +180,7 @@
   - `build/getxdrop/`
 - Standardize artifacts:
   - `inventory.json`
+  - `summary.json`
   - `migration_report.md`
   - `migration_report.json`
 - Standardize exit codes:
@@ -196,6 +199,7 @@
 - Document setup and execution in the repo.
 - Maintain regression checks against the sample GetX app.
 - Add minimal GitHub Actions for analyze and test.
+- Document config precedence, summary artifacts, and CI-friendly stdout.
 
 ### Phase F: Scaffold Prep
 
@@ -256,12 +260,13 @@
 ### CLI Commands
 
 - `getxdrop doctor --project <path>`
-- `getxdrop audit --project <path> --out <path> [--format markdown|json|both] [--include-test] [--ignore <glob>] [--dry-run]`
+- `getxdrop audit --project <path> --out <path> [--format markdown|json|both] [--include-test|--no-include-test] [--ignore <glob>] [--dry-run]`
 - `getxdrop report --project <path> --out <path> --format markdown|json|both`
 
 ### Output Files
 
 - `inventory.json`
+- `summary.json`
 - `migration_report.md`
 - `migration_report.json`
 

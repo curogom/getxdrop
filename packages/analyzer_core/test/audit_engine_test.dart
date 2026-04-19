@@ -401,6 +401,7 @@ void main() {
       expect(roundTrip.routeInventory.declarations, isEmpty);
       expect(roundTrip.networkInventory.clients, isEmpty);
       expect(roundTrip.controllerInventory.controllers, isEmpty);
+      expect(decoded, contains('hotspotInventory'));
       expect(roundTrip.findingDrillDowns.single.findingId, 'GXD-STATE-001');
       expect(auditRoundTrip.inventory.findings.single.subcategory, 'obs');
     });

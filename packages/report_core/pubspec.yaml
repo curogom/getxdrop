@@ -1,6 +1,6 @@
 name: getxdrop_report_core
 description: Report renderers for GetXDrop inventories.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 homepage: https://github.com/curogom/getxdrop
 repository: https://github.com/curogom/getxdrop
@@ -11,7 +11,7 @@ environment:
   sdk: ^3.11.4
 
 dependencies:
-  getxdrop_analyzer_core: ^0.1.0
+  getxdrop_analyzer_core: ^0.2.0
   path: ^1.9.1
 
 dev_dependencies:

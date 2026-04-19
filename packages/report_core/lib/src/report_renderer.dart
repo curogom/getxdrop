@@ -1,7 +1,21 @@
+import 'dart:convert';
+
 import 'package:getxdrop_analyzer_core/getxdrop_analyzer_core.dart';
 
 class ReportRenderer {
   const ReportRenderer();
+
+  CommandSummary buildSummary(
+    AuditResult result, {
+    required String command,
+    required int exitCode,
+  }) {
+    return CommandSummary.fromAuditResult(
+      result,
+      command: command,
+      exitCode: exitCode,
+    );
+  }
 
   String renderMarkdown(
     ProjectInventory inventory, {
@@ -106,6 +120,35 @@ class ReportRenderer {
 
     buffer
       ..writeln()
+      ..writeln('## Hotspots');
+    _writeHotspotSection(
+      buffer,
+      'Top Risky Files',
+      inventory.hotspotInventory.topFiles,
+    );
+    _writeHotspotSection(
+      buffer,
+      'Top Controllers',
+      inventory.hotspotInventory.topControllers,
+    );
+    _writeHotspotSection(
+      buffer,
+      'Top Route Modules',
+      inventory.hotspotInventory.topRouteModules,
+    );
+    _writeHotspotSection(
+      buffer,
+      'Top Categories',
+      inventory.hotspotInventory.topCategories,
+    );
+    _writeHotspotSection(
+      buffer,
+      'Top Subcategories',
+      inventory.hotspotInventory.topSubcategories,
+    );
+
+    buffer
+      ..writeln()
       ..writeln('## Explainable Findings');
     if (inventory.findingDrillDowns.isEmpty) {
       buffer.writeln('- no explainable findings');
@@ -175,6 +218,16 @@ class ReportRenderer {
 
   String renderJson(ProjectInventory inventory) => inventory.toPrettyJson();
 
+  String renderSummaryJson(
+    AuditResult result, {
+    required String command,
+    required int exitCode,
+  }) {
+    return const JsonEncoder.withIndent('  ').convert(
+      buildSummary(result, command: command, exitCode: exitCode).toJson(),
+    );
+  }
+
   String _categoryLabel(FindingCategory category) => switch (category) {
     FindingCategory.state => 'State',
     FindingCategory.di => 'DI',
@@ -182,4 +235,24 @@ class ReportRenderer {
     FindingCategory.uiHelper => 'UI Helper',
     FindingCategory.network => 'Network',
   };
+
+  void _writeHotspotSection(
+    StringBuffer buffer,
+    String title,
+    List<HotspotEntry> entries,
+  ) {
+    buffer.writeln('### $title');
+    if (entries.isEmpty) {
+      buffer.writeln('- no hotspots');
+      return;
+    }
+    for (final entry in entries.take(5)) {
+      final reasonSuffix = entry.reasons.isEmpty
+          ? ''
+          : ' · ${entry.reasons.join(' · ')}';
+      buffer.writeln(
+        '- `${entry.label}` score=${entry.score} risk=${entry.riskLevel.wireName}$reasonSuffix',
+      );
+    }
+  }
 }

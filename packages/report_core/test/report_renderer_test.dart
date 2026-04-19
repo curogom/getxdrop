@@ -136,8 +136,15 @@ void main() {
       expect(markdown, contains('## Route Inventory'));
       expect(markdown, contains('## Network Inventory'));
       expect(markdown, contains('## Controller Inventory'));
+      expect(markdown, contains('## Hotspots'));
+      expect(markdown, contains('### Top Risky Files'));
+      expect(markdown, contains('### Top Controllers'));
+      expect(markdown, contains('### Top Route Modules'));
+      expect(markdown, contains('### Top Categories'));
+      expect(markdown, contains('### Top Subcategories'));
       expect(markdown, contains('## Explainable Findings'));
       expect(markdown, contains('CatalogController'));
+      expect(markdown, contains('lib/api.dart'));
       expect(markdown, contains('Network abstraction migration'));
       expect(markdown, contains('DemoApiClient'));
       expect(markdown, contains('## Parse Failures'));
@@ -156,7 +163,37 @@ void main() {
       expect(json, contains('"routeInventory"'));
       expect(json, contains('"networkInventory"'));
       expect(json, contains('"controllerInventory"'));
+      expect(json, contains('"hotspotInventory"'));
       expect(json, contains('"findingDrillDowns"'));
+    });
+
+    test('renders summary json from audit result', () {
+      final json = renderer.renderSummaryJson(
+        AuditResult(
+          inventory: inventory,
+          parseFailures: const <ParseFailure>[
+            ParseFailure(filePath: 'lib/broken.dart', message: 'broken'),
+          ],
+        ),
+        command: 'report',
+        exitCode: 3,
+      );
+
+      expect(json, contains('"schemaVersion": 1'));
+      expect(json, contains('"command": "report"'));
+      expect(json, contains('"status": "partial"'));
+      expect(json, contains('"exitCode": 3'));
+      expect(json, contains('"categoryCounts"'));
+      expect(json, contains('"planningCounts"'));
+      expect(json, contains('"topHotspots"'));
+      expect(json, contains('"kind"'));
+      expect(json, contains('"routeDeclarations": 1'));
+      expect(json, contains('"routeInvocations": 1'));
+      expect(json, contains('"routeArgumentAccesses": 1'));
+      expect(json, contains('"networkClients": 1'));
+      expect(json, contains('"controllers": 1'));
+      expect(json, contains('"explainableFindings": 2'));
+      expect(json, contains('"recommendedSteps": 1'));
     });
   });
 }

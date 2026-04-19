@@ -27,7 +27,7 @@ Status legend:
 - [x] Route, network, controller, and explainable planning output are shipped.
 - [x] JSON outputs include a top-level `schemaVersion`.
 - [x] Schema compatibility policy is documented beyond `v0.1`.
-- [ ] `getxdrop.yaml` config support.
+- [x] `getxdrop.yaml` config support.
 
 ## Documentation And Onboarding
 
@@ -51,7 +51,7 @@ Status legend:
 ## OSS Metadata And Distribution
 
 - [x] MIT license is present.
-- [x] Versions are pinned to `0.1.0` for shipped packages.
+- [x] Versions are pinned for the current shipped package set.
 - [x] Add `homepage`, `repository`, and `issue_tracker` to publishable package metadata.
 - [x] Decide whether `getxdrop_cli` will stay GitHub-only or later publish to pub.dev.
 - [x] Document package-by-package distribution strategy.
@@ -73,11 +73,11 @@ Status legend:
 - [!] Configure branch protection for `main`.
 - [!] Add maintainer team or user handles to `CODEOWNERS`.
 
-## Release Gate For `v0.1.0`
+## Release Gate For `v0.2.0`
 
 - [x] `fvm dart run melos run analyze`
 - [x] `fvm dart run melos run test`
-- [ ] README points to the real public repository.
-- [ ] Landing page links point to deployed public URLs.
-- [ ] Release notes are finalized.
-- [ ] Tag `v0.1.0` and verify the release workflow.
+- [x] README points to the real public repository.
+- [x] Landing page links point to deployed public URLs.
+- [x] Release notes are finalized for the latest public release.
+- [ ] Tag `v0.2.0` and verify the release workflow.

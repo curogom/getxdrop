@@ -21,7 +21,7 @@ Repository distribution is always required because it contains:
 
 ### 2. GitHub Releases
 
-Primary public delivery channel for `v0.1.x`.
+Primary public delivery channel for `v0.2.x`.
 
 Why:
 
@@ -32,7 +32,7 @@ Why:
 
 ### 3. pub.dev
 
-Not the primary channel for `v0.1.x`.
+Not the primary channel for `v0.2.x`.
 
 Reason:
 
@@ -52,7 +52,7 @@ Reason:
 - `getxdrop_templates`
 
 These packages are either workspace-only or reserved for future slices and
-should not be published in `v0.1.x`.
+should not be published in `v0.2.x`.
 
 ### Candidate Packages For Future pub.dev Publication
 
@@ -65,7 +65,7 @@ chooses a pub.dev path.
 
 ## Recommended Public Strategy
 
-### `v0.1.x`
+### `v0.2.x`
 
 - repository: public
 - website: GitHub Pages
@@ -97,8 +97,8 @@ pub.dev becomes valuable for:
 
 ## Current Decision
 
-For the first public release:
+For the current public release line:
 
 - open the repository publicly
-- ship `v0.1.0` through GitHub Releases
+- ship `v0.2.x` through GitHub Releases
 - keep package publication on pub.dev deferred until a later release line
