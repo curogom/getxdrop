@@ -11,7 +11,7 @@ workspace:
   - packages/templates
 
 dev_dependencies:
-  melos: ^7.1.1
+  melos: ^7.7.0
 
 melos:
   scripts:
